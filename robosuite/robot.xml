@@ -1,0 +1,199 @@
+<mujoco model="csda10f_precision_model">
+    <actuator>
+        <motor ctrllimited="true" ctrlrange="-176.0 176.0" joint="A1" name="torq_a1"/>
+        <motor ctrllimited="true" ctrlrange="-176.0 176.0" joint="S1" name="torq_s1"/>
+        <motor ctrllimited="true" ctrlrange="-110.0 110.0" joint="L1" name="torq_l1"/>
+        <motor ctrllimited="true" ctrlrange="-110.0 110.0" joint="E1" name="torq_e1"/>
+        <motor ctrllimited="true" ctrlrange="-110.0 110.0" joint="U1" name="torq_u1"/>
+        <motor ctrllimited="true" ctrlrange="-110.0 110.0" joint="R1" name="torq_r1"/>
+        <motor ctrllimited="true" ctrlrange="-110.0 110.0" joint="B1" name="torq_b1"/>
+        <motor ctrllimited="true" ctrlrange="-110.0 110.0" joint="T1" name="torq_t1"/>
+        <motor ctrllimited="true" ctrlrange="-110.0 110.0" joint="R1F1" name="torq_r1f1"/>
+        <motor ctrllimited="true" ctrlrange="-110.0 110.0" joint="R1F2" name="torq_r1f2"/>
+        <motor ctrllimited="true" ctrlrange="-176.0 176.0" joint="S2" name="torq_s2"/>
+        <motor ctrllimited="true" ctrlrange="-110.0 110.0" joint="L2" name="torq_l2"/>
+        <motor ctrllimited="true" ctrlrange="-110.0 110.0" joint="E2" name="torq_e2"/>
+        <motor ctrllimited="true" ctrlrange="-110.0 110.0" joint="U2" name="torq_u2"/>
+        <motor ctrllimited="true" ctrlrange="-110.0 110.0" joint="R2" name="torq_r2"/>
+        <motor ctrllimited="true" ctrlrange="-110.0 110.0" joint="B2" name="torq_b2"/>
+        <motor ctrllimited="true" ctrlrange="-110.0 110.0" joint="T2" name="torq_t2"/>
+        <motor ctrllimited="true" ctrlrange="-110.0 110.0" joint="R2F1" name="torq_r2f1"/>
+        <motor ctrllimited="true" ctrlrange="-110.0 110.0" joint="R2F2" name="torq_r2f2"/>
+    </actuator>
+    <asset>
+        <mesh name="base_link" file="meshes/base_link.stl" scale="0.001 0.001 0.001" />
+        <mesh name="SBASE_1" file="meshes/SBASE_1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="S1_1" file="meshes/S1_1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="L1_1" file="meshes/L1_1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="E1_1" file="meshes/E1_1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="U1_1" file="meshes/U1_1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="R1_1" file="meshes/R1_1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="B1_1" file="meshes/B1_1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="T1_1" file="meshes/T1_1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="hand__1__1" file="meshes/hand__1__1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="MAHOLO_FINGER_R__Simplified__v3__1__1" file="meshes/MAHOLO_FINGER_R__Simplified__v3__1__1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="MAHOLO_FINGER_L__Simplified__v6__1__1" file="meshes/MAHOLO_FINGER_L__Simplified__v6__1__1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="S2_1" file="meshes/S2_1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="L2_1" file="meshes/L2_1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="E2_1" file="meshes/E2_1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="U2_1" file="meshes/U2_1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="R2_1" file="meshes/R2_1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="B2_1" file="meshes/B2_1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="T2_1" file="meshes/T2_1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="hand_1" file="meshes/hand_1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="MAHOLO_FINGER_R__Simplified__v3_1" file="meshes/MAHOLO_FINGER_R__Simplified__v3_1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="MAHOLO_FINGER_L__Simplified__v6_1" file="meshes/MAHOLO_FINGER_L__Simplified__v6_1.stl" scale="0.001 0.001 0.001" />
+    </asset>
+    <worldbody>
+        <body name="base" pos="0 0 0">
+            <!-- robot view -->
+            <camera mode="fixed" name="robotview" pos="1.0 0 0.4" quat="0.653 0.271 0.271 0.653"/>
+            <inertial diaginertia="0 0 0" mass="0" pos="0 0 0"/>
+            <!-- mount attached here -->
+            <geom type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="base_link" />
+            <geom type="mesh" rgba="0.7 0.7 0.7 1" mesh="base_link" />
+            <body name="SBASE_1" pos="0 -0.092509 0.8935">
+                <inertial pos="8.09616e-09 -0.0552233 0.218202" quat="0.690069 0.154287 -0.154287 0.690069" mass="60.4573" diaginertia="1.21459 1.17627 0.500568" />
+                <joint name="A1" pos="0 0 0" axis="0 0 -1" limited="true" range="-2.96706 2.96706" />
+                <geom pos="0 0.092509 -0.8935" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="SBASE_1" />
+                <geom pos="0 0.092509 -0.8935" type="mesh" rgba="0.7 0.7 0.7 1" mesh="SBASE_1" />
+                <body name="S1_1" pos="0.123 -0.1 0.3065">
+                    <inertial pos="0.10958 0.0207466 0.00260137" quat="0.41862 0.47429 0.512441 0.580698" mass="11.9906" diaginertia="0.0687297 0.0683015 0.0411928" />
+                    <joint name="S1" pos="0 0 0" axis="-1 0 0" limited="true" range="-3.14159 3.14159" />
+                    <geom pos="-0.123 0.192509 -1.2" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="S1_1" />
+                    <geom pos="-0.123 0.192509 -1.2" type="mesh" rgba="0.7 0.7 0.7 1" mesh="S1_1" />
+                    <body name="L1_1" pos="0.142 -0.045052 -0.005612">
+                        <inertial pos="0.00247644 0.0140672 -0.066229" quat="0.6809 0.170846 -0.197061 0.684364" mass="7.16328" diaginertia="0.0538616 0.0482655 0.0175029" />
+                        <joint name="L1" pos="0 0 0" axis="0 -0.992332 -0.123601" limited="true" range="-1.91986 1.91986" />
+                        <geom pos="-0.265 0.237561 -1.19439" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="L1_1" />
+                        <geom pos="-0.265 0.237561 -1.19439" type="mesh" rgba="0.7 0.7 0.7 1" mesh="L1_1" />
+                        <body name="E1_1" pos="0.006413 0.066668 -0.167929">
+                            <inertial pos="0.0256317 0.0162395 -0.1129" quat="0.990853 0.0660803 -0.111379 0.0379197" mass="6.99459" diaginertia="0.0456109 0.0450663 0.0130408" />
+                            <joint name="E1" pos="0 0 0" axis="0.036644 0.123518 -0.991666" limited="true" range="-2.96706 2.96706" />
+                            <geom pos="-0.271413 0.170893 -1.02646" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="E1_1" />
+                            <geom pos="-0.271413 0.170893 -1.02646" type="mesh" rgba="0.7 0.7 0.7 1" mesh="E1_1" />
+                            <body name="U1_1" pos="-0.008634 0.021393 -0.18421">
+                                <inertial pos="-0.00528571 -0.0655487 0.0424794" quat="0.872238 0.462726 0.11028 0.113679" mass="5.11429" diaginertia="0.0320326 0.030911 0.00734534" />
+                                <joint name="U1" pos="0 0 0" axis="-0.994387 -0.094051 -0.048459" limited="true" range="-2.35619 2.35619" />
+                                <geom pos="-0.262779 0.1495 -0.842249" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="U1_1" />
+                                <geom pos="-0.262779 0.1495 -0.842249" type="mesh" rgba="0.7 0.7 0.7 1" mesh="U1_1" />
+                                <body name="R1_1" pos="0.02536 -0.158588 0.107254">
+                                    <inertial pos="-0.0121062 -0.0869987 0.0572113" quat="0.627664 0.281783 -0.386037 0.614502" mass="4.52667" diaginertia="0.0228094 0.0227416 0.00607307" />
+                                    <joint name="R1" pos="0 0 0" axis="0.051674 -0.831405 0.553259" limited="true" range="-3.14159 3.14159" />
+                                    <geom pos="-0.288139 0.308088 -0.949503" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="R1_1" />
+                                    <geom pos="-0.288139 0.308088 -0.949503" type="mesh" rgba="0.7 0.7 0.7 1" mesh="R1_1" />
+                                    <body name="B1_1" pos="0.023628 -0.138353 0.092635">
+                                        <inertial pos="0.00428395 0.00031224 0.0477432" quat="0.977286 0.00574305 -0.209842 0.0290708" mass="2.95337" diaginertia="0.00971291 0.00890747 0.00371062" />
+                                        <joint name="B1" pos="0 0 0" axis="0.998169 0.060443 -0.002399" limited="true" range="-1.91986 1.91986" />
+                                        <geom pos="-0.311767 0.446441 -1.04214" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="B1_1" />
+                                        <geom pos="-0.311767 0.446441 -1.04214" type="mesh" rgba="0.7 0.7 0.7 1" mesh="B1_1" />
+                                        <body name="T1_1" pos="-0.014714 -0.000497 0.118035">
+                                            <inertial pos="-0.000819315 0.000611739 0.0662937" quat="0.706789 -0.0563621 0.000248287 0.705176" mass="3.82395" diaginertia="0.0098283 0.00805849 0.0058153" />
+                                            <joint name="T1" pos="0 0 0" axis="0.002193 0.003472 0.999992" limited="true" range="-3.14159 3.14159" />
+                                            <geom pos="-0.297053 0.446938 -1.16017" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="T1_1" />
+                                            <geom pos="-0.297053 0.446938 -1.16017" type="mesh" rgba="0.7 0.7 0.7 1" mesh="T1_1" />
+                                            <geom pos="-0.297053 0.446938 -1.16017" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="hand__1__1" />
+                                            <geom pos="-0.297053 0.446938 -1.16017" type="mesh" rgba="0.7 0.7 0.7 1" mesh="hand__1__1" />                    
+                                            <body name="MAHOLO_FINGER_R__Simplified__v3__1__1" pos="0.037123 -0.004198 0.149034">
+                                                <inertial pos="-0.0530625 0.0150082 0.0266632" quat="0.970371 0.197407 -0.0425144 0.132674" mass="0.392989" diaginertia="0.000400403 0.000385443 9.41538e-05" />
+                                                <joint name="R1F1" pos="0 0 0" axis="0.999981 -0.005843 -0.002173" type="slide" limited="true" range="-0.024 0" />
+                                                <geom pos="-0.334176 0.451136 -1.30921" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="MAHOLO_FINGER_R__Simplified__v3__1__1" />
+                                                <geom pos="-0.334176 0.451136 -1.30921" type="mesh" rgba="0.7 0.7 0.7 1" mesh="MAHOLO_FINGER_R__Simplified__v3__1__1" />
+                                            </body>
+                                            <body name="MAHOLO_FINGER_L__Simplified__v6__1__1" pos="-0.036385 0.005232 0.149163">
+                                                <inertial pos="0.0533319 0.00553823 0.0264622" quat="0.977496 0.203795 0.0257261 -0.0480415" mass="0.392989" diaginertia="0.000397381 0.000389083 8.95359e-05" />
+                                                <joint name="R1F2" pos="0 0 0" axis="-0.999981 0.005843 0.002173" type="slide" limited="true" range="-0.024 0" />
+                                                <geom pos="-0.260668 0.441706 -1.30934" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="MAHOLO_FINGER_L__Simplified__v6__1__1" />
+                                                <geom pos="-0.260668 0.441706 -1.30934" type="mesh" rgba="0.7 0.7 0.7 1" mesh="MAHOLO_FINGER_L__Simplified__v6__1__1" />
+                                            </body>
+                                            <body name="left_hand" pos="-0.000819315 0.000611739 0.0662937" quat="0.706789 -0.0563621 0.000248287 0.705176">
+                                                <!-- This sites were added for visualization. They are all standardized between models-->
+                                                <!-- Position mimics the gripper attachment point (left_hand) -->
+                                                <!--  Y-axis should be perpendicular to grasping motion, and Z-axis should point out of the robot eef -->
+                                                <site name="ee1" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 1 1" type="sphere" group="1"/>
+                                                <site name="ee1_x" pos="0 0 0" size="0.005 .1"  quat="0.707105 0.707108 0 0 " rgba="1 0 0 0" type="cylinder" group="1"/>
+                                                <site name="ee1_z" pos="0 0 0" size="0.005 .1" quat="0.707105 0 0 0.707108" rgba="0 0 1 0" type="cylinder" group="1"/>
+                                                <site name="ee1_y" pos="0 0 0" size="0.005 .1" quat="0.707105 0 0.707108 0 " rgba="0 1 0 0" type="cylinder" group="1"/>
+                                                <!-- This camera points out from the eef. -->
+                                                <camera mode="fixed" name="eye_in_hand1" pos="0.05 0 0" quat="0 0.707108 0.707108 0" fovy="75"/>
+                                                <!-- to add gripper -->
+                                            </body>
+                                        </body>
+                                    </body>
+                                </body>
+                            </body>
+                        </body>
+                    </body>
+                </body>
+                <body name="S2_1" pos="-0.123 -0.1 0.3065">
+                    <inertial pos="-0.10958 0.0207508 0.00256736" quat="0.512802 0.580388 0.418783 0.474136" mass="11.9906" diaginertia="0.0687295 0.068301 0.0411926" />
+                    <joint name="S2" pos="0 0 0" axis="1 0 0" limited="true" range="-3.14159 3.14159" />
+                    <geom pos="0.123 0.192509 -1.2" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="S2_1" />
+                    <geom pos="0.123 0.192509 -1.2" type="mesh" rgba="0.7 0.7 0.7 1" mesh="S2_1" />
+                    <body name="L2_1" pos="-0.142 -0.045052 -0.005612">
+                        <inertial pos="-0.00247088 0.0140673 -0.0662292" quat="0.684491 0.196508 -0.171395 0.680793" mass="7.16328" diaginertia="0.0538617 0.0482652 0.0175031" />
+                        <joint name="L2" pos="0 0 0" axis="0 -0.992332 -0.123601" limited="true" range="-1.91986 1.91986" />
+                        <geom pos="0.265 0.237561 -1.19439" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="L2_1" />
+                        <geom pos="0.265 0.237561 -1.19439" type="mesh" rgba="0.7 0.7 0.7 1" mesh="L2_1" />
+                        <body name="E2_1" pos="-0.006413 0.066668 -0.167929">
+                            <inertial pos="-0.0256358 0.0161983 -0.112904" quat="0.990499 0.0640821 0.112047 -0.0474429" mass="6.99459" diaginertia="0.0456114 0.0450657 0.0130409" />
+                            <joint name="E2" pos="0 0 0" axis="-0.036644 0.123518 -0.991666" limited="true" range="-2.96706 2.96706" />
+                            <geom pos="0.271413 0.170893 -1.02646" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="E2_1" />
+                            <geom pos="0.271413 0.170893 -1.02646" type="mesh" rgba="0.7 0.7 0.7 1" mesh="E2_1" />
+                            <body name="U2_1" pos="0.008634 0.021393 -0.18421">
+                                <inertial pos="0.00530352 -0.065443 0.0426398" quat="0.87294 0.461804 -0.112046 -0.110262" mass="5.11429" diaginertia="0.0320322 0.0309118 0.00734496" />
+                                <joint name="U2" pos="0 0 0" axis="0.994387 -0.094051 -0.048459" limited="true" range="-2.35619 2.35619" />
+                                <geom pos="0.262779 0.1495 -0.842249" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="U2_1" />
+                                <geom pos="0.262779 0.1495 -0.842249" type="mesh" rgba="0.7 0.7 0.7 1" mesh="U2_1" />
+                                <body name="R2_1" pos="-0.025358 -0.158574 0.107274">
+                                    <inertial pos="0.0121076 -0.08698 0.0572407" quat="0.604083 0.380853 -0.287803 0.638126" mass="4.52667" diaginertia="0.0228102 0.022742 0.00607277" />
+                                    <joint name="R2" pos="0 0 0" axis="-0.051674 -0.831405 0.553259" limited="true" range="-3.14159 3.14159" />
+                                    <geom pos="0.288137 0.308074 -0.949523" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="R2_1" />
+                                    <geom pos="0.288137 0.308074 -0.949523" type="mesh" rgba="0.7 0.7 0.7 1" mesh="R2_1" />
+                                    <body name="B2_1" pos="-0.023628 -0.138354 0.092635">
+                                        <inertial pos="-0.00427086 0.000524461 0.0477429" quat="0.977231 0.00370907 0.209901 -0.0307914" mass="2.95337" diaginertia="0.00971321 0.00890735 0.00371044" />
+                                        <joint name="B2" pos="0 0 0" axis="-0.998169 0.060443 -0.002399" limited="true" range="-1.91986 1.91986" />
+                                        <geom pos="0.311765 0.446428 -1.04216" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="B2_1" />
+                                        <geom pos="0.311765 0.446428 -1.04216" type="mesh" rgba="0.7 0.7 0.7 1" mesh="B2_1" />
+                                        <body name="T2_1" pos="0.014714 -0.000497 0.118035">
+                                            <inertial pos="-0.00111467 0.000600421 0.0661593" quat="0.702633 -0.0585222 -0.00191765 0.70914" mass="3.82395" diaginertia="0.00980618 0.00803706 0.00581492" />
+                                            <joint name="T2" pos="0 0 0" axis="-0.002193 0.003472 0.999992" />
+                                            <geom pos="0.297051 0.446925 -1.16019" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="T2_1" />
+                                            <geom pos="0.297051 0.446925 -1.16019" type="mesh" rgba="0.7 0.7 0.7 1" mesh="T2_1" />
+                                            <geom pos="0.297051 0.446925 -1.16019" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="hand_1" />
+                                            <geom pos="0.297051 0.446925 -1.16019" type="mesh" rgba="0.7 0.7 0.7 1" mesh="hand_1" />
+                                            <body name="MAHOLO_FINGER_R__Simplified__v3_1" pos="0.036521 -0.003768 0.148994">
+                                                <inertial pos="-0.0533492 0.0143865 0.0264324" quat="0.969141 0.198234 -0.0440739 0.139737" mass="0.392989" diaginertia="0.000400471 0.000386101 9.34277e-05" />
+                                                <joint name="R2F1" pos="0 0 0" axis="0.999981 0.005843 0.002173" type="slide" limited="true" range="-0.024 0" />
+                                                <geom pos="0.26053 0.450693 -1.30919" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="MAHOLO_FINGER_R__Simplified__v3_1" />
+                                                <geom pos="0.26053 0.450693 -1.30919" type="mesh" rgba="0.7 0.7 0.7 1" mesh="MAHOLO_FINGER_R__Simplified__v3_1" />
+                                            </body>
+                                            <body name="MAHOLO_FINGER_L__Simplified__v6_1" pos="-0.037092 0.004802 0.148803">
+                                                <inertial pos="0.0531484 0.0061608 0.0266944" quat="0.977972 0.202817 0.0246153 -0.0427813" mass="0.392989" diaginertia="0.00039737 0.000388361 9.02685e-05" />
+                                                <joint name="R2F2" pos="0 0 0" axis="-0.999981 -0.005843 -0.002173" type="slide" limited="true" range="-0.024 0" />
+                                                <geom pos="0.334143 0.442123 -1.309" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="MAHOLO_FINGER_L__Simplified__v6_1" />
+                                                <geom pos="0.334143 0.442123 -1.309" type="mesh" rgba="0.7 0.7 0.7 1" mesh="MAHOLO_FINGER_L__Simplified__v6_1" />
+                                            </body>
+                                            <body name="right_hand" pos="-0.00111467 0.000600421 0.0661593" quat="0.702633 -0.0585222 -0.00191765 0.70914">
+                                                <!-- This sites were added for visualization. They are all standardized between models-->
+                                                <!-- Position mimics the gripper attachment point (right_hand) -->
+                                                <!--  Y-axis should be perpendicular to grasping motion, and Z-axis should point out of the robot eef -->
+                                                <site name="ee2" pos="0 0 0" size="0.01 0.01 0.01" rgba="0 0 1 1" type="sphere" group="1"/>
+                                                <site name="ee2_x" pos="0 0 0" size="0.005 .1"  quat="0.707105 0.707108 0 0 " rgba="1 0 0 0" type="cylinder" group="1"/>
+                                                <site name="ee2_z" pos="0 0 0" size="0.005 .1" quat="0.707105 0 0 0.707108" rgba="0 0 1 0" type="cylinder" group="1"/>
+                                                <site name="ee2_y" pos="0 0 0" size="0.005 .1" quat="0.707105 0 0.707108 0 " rgba="0 1 0 0" type="cylinder" group="1"/>
+                                                <!-- This camera points out from the eef. -->
+                                                <camera mode="fixed" name="eye_in_hand2" pos="0.05 0 0" quat="0 0.707108 0.707108 0" fovy="75"/>
+                                                <!-- to add gripper -->
+                                            </body>
+                                        </body>
+                                    </body>
+                                </body>
+                            </body>
+                        </body>
+                    </body>
+                </body>
+            </body>
+        </body>
+    </worldbody>
+</mujoco>
