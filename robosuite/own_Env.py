@@ -8,11 +8,11 @@ from robosuite.utils.mjcf_utils import new_joint
 import mujoco
 import mujoco_viewer
 
-# Step 1: Creating the world. 
+# Step 1: Creating the world.
 world = MujocoWorldBase()
 
 # Step 2: Creating the robot, add a gripper.
-mujoco_robot = IIWA()
+mujoco_robot = Maholo()
 # mujoco_robot.contact_geom_rgba([0.5, 0.5, 0.5, 1.0])
 # gripper = gripper_factory('PandaGripper')
 # mujoco_robot.add_gripper(gripper)

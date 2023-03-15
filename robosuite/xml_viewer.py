@@ -2,7 +2,7 @@ import mujoco
 import mujoco_viewer
 from robosuite.models.robots import Maholo
 
-model = mujoco.MjModel.from_xml_path('robot.xml')
+model = mujoco.MjModel.from_xml_path('./robots/maholo/robot.xml')
 mujoco_robot = Maholo()
 data = mujoco.MjData(model)
 

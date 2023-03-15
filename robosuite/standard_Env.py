@@ -3,7 +3,7 @@ import robosuite as suite
 
 # create environment instance
 env = suite.make(
-    env_name="TwoArmPegInHole", # try with other tasks like "Stack" and "Door"
+    env_name="TwoArmLift", # try with other tasks like "Stack" and "Door"
     robots="Maholo",  # try with other robots like "Sawyer" and "Jaco"
     has_renderer=True,
     has_offscreen_renderer=False,
@@ -12,7 +12,7 @@ env = suite.make(
 
 # reset the environment
 env.reset()
-for i in range(100):
+for i in range(1000):
     action = np.random.randn(env.robots[0].dof) # sample random action
     obs, reward, done, info = env.step(action)  # take action in the environment
     env.render()  # render on display
