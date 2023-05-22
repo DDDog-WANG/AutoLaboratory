@@ -1,0 +1,37 @@
+### xacro
+<link name="B1_1"> -> body name
+  <inertial>
+    <origin rpy="0 0 0" xyz="0.004283949653296426 0.0003122402239437161 0.04774324430963883"/> -> inertial pos & quat
+    <mass value="2.95336548278132"/> -> mass
+    <inertia ixx="0.008702" ixy="-1e-05" ixz="0.002243" iyy="0.008907" iyz="0.000129" izz="0.004722"/> -> diaginertia
+  </inertial>
+  <visual>
+    <origin rpy="0 0 0" xyz="-0.311767 0.446441 -1.042138"/> -> geom pos
+    <geometry>
+      <mesh filename="package://csda10f_asm_4URDF_precision_model_description/meshes/B1_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin rpy="0 0 0" xyz="-0.311767 0.446441 -1.042138"/> -> geom pos
+    <geometry>
+      <mesh filename="package://csda10f_asm_4URDF_precision_model_description/meshes/B1_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<joint name="B1" type="revolute"> -> joint name
+  <origin rpy="0 0 0" xyz="0.023628 -0.138353 0.092635"/> -> body pos
+  <parent link="R1_1"/>
+  <child link="B1_1"/>
+  <axis xyz="0.998169 0.060443 -0.002399"/> ->joint axis
+  <limit effort="100" lower="-1.919862" upper="1.919862" velocity="100"/> -> joint range
+</joint>
+
+
+### XML
+<body name="B1_1" pos="0.023628 -0.138353 0.092635">
+  <inertial pos="0.00428395 0.00031224 0.0477432" quat="1 0 0 0" mass="2.95337" diaginertia="0.008702 0.008907 0.004722" />
+  <joint name="B1" pos="0 0 0" axis="0.998169 0.060443 -0.002399" limited="true" range="-1.91986 1.91986" />
+  <geom pos="-0.311767 0.446441 -1.04214" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="B1_1" />
+  <geom pos="-0.311767 0.446441 -1.04214" type="mesh" rgba="0.7 0.7 0.7 1" mesh="B1_1" /> 

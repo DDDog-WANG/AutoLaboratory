@@ -1,6 +1,5 @@
 from robosuite.models import MujocoWorldBase
-from robosuite.models.robots import Maholo
-from robosuite.models.robots import IIWA
+from robosuite.models import robots
 from robosuite.models.grippers import gripper_factory
 from robosuite.models.arenas import TableArena
 from robosuite.models.objects import BallObject
@@ -12,10 +11,16 @@ import mujoco_viewer
 world = MujocoWorldBase()
 
 # Step 2: Creating the robot, add a gripper.
-mujoco_robot = Maholo()
-# mujoco_robot.contact_geom_rgba([0.5, 0.5, 0.5, 1.0])
-# gripper = gripper_factory('PandaGripper')
-# mujoco_robot.add_gripper(gripper)
+mujoco_robot = robots.Maholo()
+print(mujoco_robot.eef_name)
+
+gripper_right = gripper_factory("MaholoGripper_R", idn=0)
+gripper_left = gripper_factory("MaholoGripper_L", idn=1)
+gripper = gripper_factory("RethinkGripper")
+
+mujoco_robot.add_gripper(gripper_right, arm_name="robot0_right_hand")
+mujoco_robot.add_gripper(gripper_left, arm_name="robot0_left_hand")
+
 mujoco_robot.set_base_xpos([0, 0, 0])
 world.merge(mujoco_robot)
 
@@ -40,7 +45,7 @@ data = mujoco.MjData(model)
 viewer = mujoco_viewer.MujocoViewer(model, data)
 
 # simulate and render
-for _ in range(100000):
+for _ in range(1000):
     mujoco.mj_step(model, data)
     viewer.render()
 
