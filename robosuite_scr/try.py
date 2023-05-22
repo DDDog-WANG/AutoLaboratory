@@ -1,12 +1,12 @@
 from math import pi
 from math import degrees
 import numpy as np
-from robosuite import robosuite
+import robosuite as suite
 from robosuite import load_controller_config
 from robosuite.utils.transform_utils import quat2mat, mat2euler
 
 controller_config = load_controller_config(default_controller="JOINT_POSITION")
-env = robosuite.make(
+env = suite.make(
     env_name="MaholoLaboratory",
     robots="Maholo",
     gripper_types=["PandaGripper", "PandaGripper"],
@@ -41,7 +41,7 @@ for joint_index in env.robots[0].joint_indexes:
 
 env.reset()
 action=np.zeros(17)
-for ep in range(50):
+for ep in range(10):
     obs, reward, done, _ = env.step(action)
     env.render()
 
