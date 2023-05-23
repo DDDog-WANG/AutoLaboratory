@@ -27,7 +27,7 @@ action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n
 model = DDPG(policy="MlpPolicy", env=env, replay_buffer_class=ReplayBuffer, verbose=1,
             gamma = 0.95, batch_size= 2048, buffer_size=100000,
             learning_rate = 1e-3, action_noise = action_noise, policy_kwargs = policy_kwargs)
-model.learn(total_timesteps=1000)
+model.learn(total_timesteps=100000)
 model.save('models/DDPG')
 print("Saved!!")
 
