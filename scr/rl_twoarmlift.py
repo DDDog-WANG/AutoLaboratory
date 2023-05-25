@@ -1,10 +1,9 @@
 from math import pi
-
 import numpy as np
+import random
 import torch
 import torch.nn as nn
 import torch.optim as optim
-
 import robosuite as suite
 from robosuite import load_controller_config
 from robosuite.utils.transform_utils import mat2euler, quat2mat
@@ -15,7 +14,8 @@ env = suite.make(
     robots="Maholo",
     gripper_types=["PandaGripper", "PandaGripper"],
     controller_configs=controller_config,
-    has_renderer=True,
+    has_renderer=False,
+    has_offscreen_renderer=False,
     control_freq=50,
     horizon = 500,
 )
@@ -32,7 +32,6 @@ class Actor(nn.Module):
             nn.Linear(300, action_dim),
             nn.Tanh(),
         )
-
     def forward(self, state):
         action = self.layers(state) * self.action_bound
         return action
@@ -47,16 +46,12 @@ class Critic(nn.Module):
             nn.ReLU(),
             nn.Linear(300, 1),
         )
-
     def forward(self, state, action):
         x = torch.cat([state, action], dim=1)
         value = self.layers(x)
         return value
 
-import numpy as np
 from collections import deque
-import random
-import robosuite as suite
 from robosuite.wrappers import GymWrapper
 
 def train(actor, critic, env, num_episodes=5000, buffer_size=100000, batch_size=64, gamma=0.99, tau=0.005):

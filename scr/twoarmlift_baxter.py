@@ -3,17 +3,18 @@ import numpy as np
 import robosuite as suite
 from robosuite import load_controller_config
 from robosuite.utils.transform_utils import quat2mat, mat2euler
+
 controller_config = load_controller_config(default_controller="OSC_POSE")
 env = suite.make(
-    env_name="MaholoLaboratory",
-    robots="Maholo",
-    gripper_types=["PandaGripper", "PandaGripper"],
+    env_name="TwoArmLift",
+    robots="Baxter",
+    gripper_types=["MaholoGripper_R"],
     controller_configs=controller_config,
     has_renderer=True,
+    has_offscreen_renderer=True,
     control_freq=50,
     horizon = 500,
 )
-
 fac_tran = 20
 fac_rot = 2
 zeros = np.zeros(3)
@@ -66,15 +67,15 @@ for i in range(epoches):
         handle1_pos = obs["handle1_xpos"]
 
         # delta
-        delta_left_pos = handle0_pos - eef_left_pos
-        delta_right_pos = handle1_pos - eef_right_pos
+        delta_left_pos = handle1_pos - eef_left_pos
+        delta_right_pos = handle0_pos - eef_right_pos
         delta_up_left_pos = np.array([delta_left_pos[0], delta_left_pos[1], delta_left_pos[2]+0.1])
         delta_up_right_pos = np.array([delta_right_pos[0], delta_right_pos[1], delta_right_pos[2]+0.1])
 
         delta_right_euler = pot_euler - eef_right_euler
         delta_left_euler = pot_euler - eef_left_euler
-        delta_right_euler = np.array([-delta_right_euler[0]+pi, -delta_right_euler[1], delta_right_euler[2]])
-        delta_left_euler = np.array([-delta_left_euler[0]+pi, -delta_left_euler[1], delta_left_euler[2]])
+        delta_right_euler = np.array([-delta_right_euler[0]-pi, -delta_right_euler[1], delta_right_euler[2]])
+        delta_left_euler = np.array([-delta_left_euler[0]-pi, -delta_left_euler[1], delta_left_euler[2]])
 
         # action step
         action_left_roll, done_left_roll = roll(delta_left_euler, -1)
@@ -94,7 +95,7 @@ for i in range(epoches):
         elif done_roll and not done_move:
             action = np.concatenate((action_right_move, action_left_move))
             print("👾 [MOVE] ",[round(x/fac_tran, 4) for x in action])
-        elif done_roll and done_move and not done_down:
+        elif done_roll and done_move and not done_down: 
             action = np.concatenate((action_right_down, action_left_down))
             print("🎃 [DOWN] ",[round(x/fac_tran, 4) for x in action])
         elif done_roll and done_move and done_down and not done_pick:
@@ -110,5 +111,6 @@ for i in range(epoches):
         total_reward += reward
         if step_up > 20: done = True
         env.render()
+    env.close()
 
     print(f"\n🎉 Episode {i + 1} finished with total reward: {total_reward}")

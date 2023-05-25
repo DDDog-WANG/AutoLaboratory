@@ -13,6 +13,7 @@ env = suite.make(
     robots="Panda",
     controller_configs=controller_config,
     has_renderer=True,
+    has_offscreen_renderer=True,
     control_freq=50,
     horizon = 1000,
 )
@@ -96,5 +97,6 @@ for i in range(epoches):
         total_reward += reward
         if step_up > 20: done = True
         env.render()
+    env.close()
 
     print(f"\n🎉 Episode {i + 1} finished with total reward: {total_reward}")

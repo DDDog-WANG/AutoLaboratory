@@ -4,7 +4,6 @@ import numpy as np
 import robosuite as suite
 from robosuite import load_controller_config
 from robosuite.utils.transform_utils import quat2mat, mat2euler
-
 controller_config = load_controller_config(default_controller="JOINT_POSITION")
 env = suite.make(
     env_name="MaholoLaboratory",
@@ -12,16 +11,24 @@ env = suite.make(
     gripper_types=["PandaGripper", "PandaGripper"],
     controller_configs=controller_config,
     has_renderer=True,
+    has_offscreen_renderer=True,
     control_freq=10,
-    horizon = 500,
+    horizon = 100,
 )
-
 for key in env.robots[0].gripper:
     print(f"{key} hand: {env.robots[0].gripper[key]}")
 
-for joint_index in env.robots[0].joint_indexes:
-    joint_name = env.sim.model.joint_id2name(joint_index)
-    print(f"{joint_index}: {joint_name}; ")
+obs = env.reset()
+# action=np.zeros(17)
+for ep in range(50):
+    action=np.random.rand(17)
+    obs, reward, done, _ = env.step(action)
+    env.render()
+env.close()
+
+# for joint_index in env.robots[0].joint_indexes:
+#     joint_name = env.sim.model.joint_id2name(joint_index)
+#     print(f' "{joint_index}: {joint_name}" ', end="; ")
 
 # for j in range(9):
 #     env.reset()
@@ -38,12 +45,6 @@ for joint_index in env.robots[0].joint_indexes:
 #         print("{:02}".format(ep), ["{:.4f}".format(round(x, 4)) for x in env.robots[0]._joint_positions])
 #         # print(f"{ep}: {[round(x, 4) for x in env.robots[0]._joint_velocities]}")
 #         env.render()
-
-env.reset()
-action=np.zeros(17)
-for ep in range(10):
-    obs, reward, done, _ = env.step(action)
-    env.render()
 
 # print("👑 env: ",dir(env))
 # print("👑 env.robots[0]: ",dir(env.robots[0]))
