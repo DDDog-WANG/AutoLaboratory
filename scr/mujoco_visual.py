@@ -16,7 +16,7 @@ print(mujoco_robot.eef_name)
 
 gripper_right = gripper_factory("MaholoGripper_R", idn=0)
 gripper_left = gripper_factory("MaholoGripper_L", idn=1)
-gripper = gripper_factory("PandanGripper")
+gripper = gripper_factory("PandaGripper")
 
 mujoco_robot.add_gripper(gripper_right, arm_name="robot0_right_hand")
 mujoco_robot.add_gripper(gripper_left, arm_name="robot0_left_hand")
