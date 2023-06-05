@@ -6,7 +6,7 @@ from robosuite.utils.transform_utils import quat2mat, mat2euler
 
 controller_config = load_controller_config(default_controller="OSC_POSE")
 env = suite.make(
-    env_name="MaholoLaboratory",
+    env_name="TwoArmLift",
     robots="Maholo",
     gripper_types=["PandaGripper", "PandaGripper"],
     controller_configs=controller_config,

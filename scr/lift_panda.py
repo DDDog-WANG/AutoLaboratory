@@ -15,7 +15,7 @@ env = suite.make(
     has_renderer=True,
     has_offscreen_renderer=True,
     control_freq=50,
-    horizon = 1000,
+    horizon = 200,
 )
 fac_tran = 20
 fac_rot = 2
@@ -44,9 +44,10 @@ def roll(delta_euler, grip):
     # else: done = True
     return action, done
 
-epoches = 1
+episodes = 1
+n = 1
 env.reset()
-for i in range(epoches):
+for i in range(episodes):
     env.reset()
     total_reward = 0.
     obs = env._get_observations()
@@ -76,26 +77,30 @@ for i in range(epoches):
 
         if not done_roll:
             action = action_roll
-            print("🤡 [ROLL] ",[round(x/fac_rot, 4) for x in action[:7]])
+            print("{:03}".format(n), "🤡 [ROLL] ",[round(x/fac_rot, 4) for x in action[:7]],end=" ")
         elif done_roll and not done_move:
             action = action_move
-            print("👾 [MOVE] ",[round(x/fac_tran, 4) for x in action[:7]])
+            print("{:03}".format(n), "👾 [MOVE] ",[round(x/fac_tran, 4) for x in action[:7]],end=" ")
         elif done_roll and done_move and not done_down: 
             action = action_down
-            print("🎃 [DOWN] ",[round(x/fac_tran, 4) for x in action[:7]])
+            print("{:03}".format(n), "🎃 [DOWN] ",[round(x/fac_tran, 4) for x in action[:7]],end=" ")
         elif done_roll and done_move and done_down and not done_pick:
             action = np.concatenate((zeros, zeros, np.array([1])))
-            print("👹 [PICK] ",[round(x, 4) for x in action[:7]])
+            print("{:03}".format(n), "👹 [PICK] ",[round(x, 4) for x in action[:7]],end=" ")
             step_pick += 1
             if step_pick > 20: done_pick = True
         elif done_roll and done_move and done_down and done_pick:
             action =  np.concatenate((np.array([0, 0, 1]), zeros, np.array([1])))
-            print("👻 [UPPP] ",[round(x, 4) for x in action[:7]])
+            print("{:03}".format(n), "👻 [UPPP] ",[round(x, 4) for x in action[:7]],end=" ")
             step_up += 1
 
         obs, reward, done, _ = env.step(action)
+        cube_height = env.sim.data.body_xpos[env.cube_body_id][2]
+        table_height = env.model.mujoco_arena.table_offset[2]
+        print(round(reward, 4), round(cube_height-table_height, 4), env._check_success())
         total_reward += reward
-        if step_up > 20: done = True
+        n += 1
+        # if step_up > 20: done = True
         env.render()
     env.close()
 
