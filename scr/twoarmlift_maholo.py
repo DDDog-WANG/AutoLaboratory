@@ -13,11 +13,11 @@ env = suite.make(
     has_renderer=True,
     has_offscreen_renderer=True,
     control_freq=50,
-    horizon = 500,
+    horizon = 1000,
 )
 
-fac_tran = 20
-fac_rot = 2
+fac_tran = 5
+fac_rot = 1
 zeros = np.zeros(3)
 def move(delta_pos, grip):
     action = np.concatenate((zeros, zeros, np.array([grip]) ))
@@ -51,7 +51,7 @@ for i in range(epoches):
     env.reset()
     total_reward = 0.
     obs = env._get_observations()
-    while not done:
+    while not env._check_success():
         # robot_eef_info
         eef_left_pos = obs['robot0_left_eef_pos']
         eef_left_quat = obs['robot0_left_eef_quat']
@@ -103,7 +103,7 @@ for i in range(epoches):
             action = np.concatenate((zeros, zeros, np.array([1]), zeros, zeros, np.array([1]) ))
             print("👹 [PICK] ",[round(x, 4) for x in action])
             step_pick += 1
-            if step_pick > 20: done_pick = True
+            if step_pick > 30: done_pick = True
         elif done_roll and done_move and done_down and done_pick:
             action =  np.concatenate((np.array([0, 0, 1]), zeros, np.array([1]), np.array([0, 0, 1]), zeros, np.array([1]) ))
             print("👻 [UPPP] ",[round(x, 4) for x in action])

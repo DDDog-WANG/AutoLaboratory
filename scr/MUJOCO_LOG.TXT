@@ -1,0 +1,39 @@
+Mon Jun 12 17:51:40 2023
+WARNING: mju_openResource: unknown file '/media/psf/Home/Desktop/Github/Maholo/robosuite/models/assets/arenas/laboratory_arena.xml'
+
+Thu Jun 29 14:47:48 2023
+WARNING: Inertia matrix is too close to singular at DOF 24. Check model. Time = 0.0000.
+
+Thu Jun 29 14:47:49 2023
+WARNING: Inertia matrix is too close to singular at DOF 24. Check model. Time = 0.0000.
+
+Thu Jun 29 14:47:51 2023
+WARNING: Nan, Inf or huge value in QACC at DOF 22. The simulation is unstable. Time = 0.1200.
+
+Thu Jun 29 14:47:51 2023
+WARNING: Inertia matrix is too close to singular at DOF 24. Check model. Time = 0.0000.
+
+Fri Jun 30 16:54:19 2023
+WARNING: Nan, Inf or huge value in QACC at DOF 22. The simulation is unstable. Time = 0.0080.
+
+Fri Jun 30 16:57:12 2023
+WARNING: Nan, Inf or huge value in QACC at DOF 22. The simulation is unstable. Time = 0.0080.
+
+Fri Jun 30 16:59:17 2023
+WARNING: Nan, Inf or huge value in QACC at DOF 22. The simulation is unstable. Time = 0.0080.
+
+Fri Jun 30 17:29:28 2023
+WARNING: Nan, Inf or huge value in QACC at DOF 22. The simulation is unstable. Time = 0.0080.
+
+Fri Jun 30 17:30:14 2023
+WARNING: Nan, Inf or huge value in QACC at DOF 19. The simulation is unstable. Time = 0.0100.
+
+Fri Jun 30 17:30:51 2023
+WARNING: Nan, Inf or huge value in QACC at DOF 19. The simulation is unstable. Time = 0.0100.
+
+Fri Jun 30 17:39:22 2023
+WARNING: Nan, Inf or huge value in QACC at DOF 19. The simulation is unstable. Time = 0.0060.
+
+Mon Jul  3 15:33:27 2023
+WARNING: Nan, Inf or huge value in QACC at DOF 25. The simulation is unstable. Time = 0.0240.
+

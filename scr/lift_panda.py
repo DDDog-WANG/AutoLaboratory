@@ -15,10 +15,10 @@ env = suite.make(
     has_renderer=True,
     has_offscreen_renderer=True,
     control_freq=50,
-    horizon = 200,
+    horizon = 400,
 )
-fac_tran = 20
-fac_rot = 2
+fac_tran = 5
+fac_rot = 1
 zeros = np.zeros(3)
 def move(delta_pos, grip):
     action = np.concatenate((zeros, zeros, np.array([grip]) ))
@@ -53,7 +53,7 @@ for i in range(episodes):
     obs = env._get_observations()
     done = done_roll = done_pick = done_move = done_down = False
     step_pick = step_up = 0
-    while not done:
+    while not env._check_success():
         # robot_eef_info
         eef_pos = obs['robot0_eef_pos']
         eef_quat = obs['robot0_eef_quat']
@@ -97,7 +97,7 @@ for i in range(episodes):
         obs, reward, done, _ = env.step(action)
         cube_height = env.sim.data.body_xpos[env.cube_body_id][2]
         table_height = env.model.mujoco_arena.table_offset[2]
-        print(round(reward, 4), round(cube_height-table_height, 4), env._check_success())
+        print(round(reward, 4), round(cube_height-table_height, 4))
         total_reward += reward
         n += 1
         # if step_up > 20: done = True
