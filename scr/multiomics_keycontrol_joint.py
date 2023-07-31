@@ -9,7 +9,7 @@ controller_config = load_controller_config(default_controller="JOINT_POSITION")
 env = suite.make(
     env_name="MaholoLaboratory",
     robots="Maholo",
-    gripper_types=["PandaGripper"],
+    # gripper_types=["PandaGripper"],
     controller_configs=controller_config,
     has_renderer=True,
     has_offscreen_renderer=True,

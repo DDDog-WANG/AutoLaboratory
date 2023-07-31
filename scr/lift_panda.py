@@ -15,9 +15,9 @@ env = suite.make(
     has_renderer=True,
     has_offscreen_renderer=True,
     control_freq=50,
-    horizon = 400,
+    horizon = 10000,
 )
-fac_tran = 5
+fac_tran = 1
 fac_rot = 1
 zeros = np.zeros(3)
 def move(delta_pos, grip):

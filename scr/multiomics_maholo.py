@@ -8,7 +8,7 @@ controller_config = load_controller_config(default_controller="OSC_POSE")
 env = suite.make(
     env_name="MaholoLaboratory",
     robots="Maholo",
-    gripper_types=["PandaGripper", "PandaGripper"],
+    # gripper_types=["PandaGripper", "PandaGripper"],
     controller_configs=controller_config,
     has_renderer=True,
     has_offscreen_renderer=True,
