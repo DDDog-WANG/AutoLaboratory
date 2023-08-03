@@ -8,7 +8,7 @@ env:  <robosuite.environments.manipulation.lift.Lift object at 0x1538bd043eb0>
 🌼 [obs] robosuite.env.reset()
 type(obs):  <class 'collections.OrderedDict'>
 dir(obs):  ['__class__', '__class_getitem__', '__contains__', '__delattr__', '__delitem__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getitem__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__ior__', '__iter__', '__le__', '__len__', '__lt__', '__ne__', '__new__', '__or__', '__reduce__', '__reduce_ex__', '__repr__', '__reversed__', '__ror__', '__setattr__', '__setitem__', '__sizeof__', '__str__', '__subclasshook__', 'clear', 'copy', 'fromkeys', 'get', 'items', 'keys', 'move_to_end', 'pop', 'popitem', 'setdefault', 'update', 'values']
-Key: robot0_joint_pos_cos, 
+Key: robot0_joint_pos_cos, Value.shape: (7,)
 Key: robot0_joint_pos_sin, Value.shape: (7,)
 Key: robot0_joint_vel, Value.shape: (7,)
 Key: robot0_eef_pos, Value.shape: (3,)

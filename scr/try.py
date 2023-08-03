@@ -14,7 +14,7 @@ if __name__ == "__main__":
     parser.add_argument("--robots", type=str, default="Maholo")
     parser.add_argument("--camera", type=str, default="frontview")
     parser.add_argument("--video_name", type=str, default="my_video")
-    parser.add_argument("--timesteps", type=int, default=200)
+    parser.add_argument("--t", type=int, default=200)
     parser.add_argument("--height", type=int, default=1536)
     parser.add_argument("--width", type=int, default=2560)
     args = parser.parse_args()
@@ -29,20 +29,20 @@ env = suite.make(
     has_renderer=True,
     has_offscreen_renderer=True,
     control_freq=50,
-    horizon = 10000,
     render_camera=args.camera,
+    camera_names=args.camera,
     camera_heights=args.height,
     camera_widths=args.width,
     render_gpu_device_id=0,
 )
-# for key in env.robots[0].gripper:
-#     print(f"{key} hand: {env.robots[0].gripper[key]}")
+for key in env.robots[0].gripper:
+    print(f"{key} hand: {env.robots[0].gripper[key]}")
 
 action = np.zeros(env.robots[0].dof)
 # obs = env.reset()
 # env.render()
 time.sleep(1)
-for n in tqdm(range(args.timesteps)):
+for n in tqdm(range(args.t)):
     action=np.random.rand(env.robots[0].dof)
     obs, reward, done, _ = env.step(action)
     env.render()
@@ -68,9 +68,9 @@ env.close()
 #         # print(f"{ep}: {[round(x, 4) for x in env.robots[0]._joint_velocities]}")
 #         env.render()
 
-# print("👑 env: ",dir(env))
-# print("👑 env.robots[0]: ",dir(env.robots[0]))
+print("👑 env: ",dir(env))
+print("👑 env.robots[0]: ",dir(env.robots[0]))
 
-# print("👑 env._get_observations(): ",dir(obs))
-# for key,value in obs.items():
-#     print(f"Key: {key}, Value.shape: {value.shape}")
+print("👑 env._get_observations(): ",dir(obs))
+for key,value in obs.items():
+    print(f"Key: {key}, Value.shape: {value.shape}")

@@ -66,4 +66,52 @@
 * env.robots[0].robot_model = ['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_actuators', '_base_offset', '_bodies', '_contact_geoms', '_eef_name', '_elements', '_get_default_classes', '_horizontal_radius', '_important_geoms', '_important_sensors', '_important_sites', '_joints', '_replace_defaults_inline', '_root_body', '_sensors', '_sites', '_visual_geoms', 'actuator', 'actuators', 'add_gripper', 'add_mount', 'arm_type', 'asset', 'base_offset', 'base_xpos_offset', 'bodies', 'bottom_offset', 'cameras', 'contact', 'contact_geom_rgba', 'contact_geoms', 'correct_naming', 'create_default_element', 'default_controller_config', 'default_gripper', 'default_mount', 'dof', 'eef_name', 'equality', 'exclude_from_prefixing', 'file', 'folder', 'get_element_names', 'get_model', 'get_xml', 'grippers', 'hand_rotation_offset', 'horizontal_radius', 'idn', 'important_geoms', 'important_sensors', 'important_sites', 'init_qpos', 'joints', 'merge', 'merge_assets', 'models', 'mount', 'name', 'naming_prefix', 'resolve_asset_dependency', 'root', 'root_body', 'save_model', 'sensor', 'sensors', 'set_base_ori', 'set_base_xpos', 'set_joint_attribute', 'set_sites_visibility', 'sites', 'tendon', 'top_offset', 'tree', 'visual_geoms', 'worldbody']
 
 * dir(env.sim) = ['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_render_context_offscreen', 'add_render_context', 'data', 'forward', 'free', 'from_xml_file', 'from_xml_string', 'get_state', 'model', 'render', 'reset', 'set_state', 'set_state_from_flattened', 'step']
+
+
+########################################################
+
+# env.MaholoLaboratory
+* dir(env) = ['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_action_dim', '_check_grasp', '_check_robot_configuration', '_check_success', '_create_camera_sensors', '_create_segementation_sensor', '_destroy_sim', '_destroy_viewer', '_eef0_xmat', '_eef0_xpos', '_eef0_xquat', '_eef1_xmat', '_eef1_xpos', '_eef1_xquat', '_get_observations', '_gripper_to_target', '_initialize_sim', '_input2list', '_load_model', '_load_robots', '_obs_cache', '_observables', '_post_action', '_pre_action', '_reset_internal', '_setup_observables', '_setup_references', '_update_observables', '_visualizations', '_visualize_gripper_to_target', '_xml_processor', 'action_dim', 'action_spec', 'active_observables', 'add_observable', 'camera_depths', 'camera_heights', 'camera_names', 'camera_segmentations', 'camera_widths', 'check_contact', 'clear_objects', 'close', 'close_renderer', 'control_freq', 'control_timestep', 'cur_time', 'deterministic_reset', 'done', 'edit_model_xml', 'enabled_observables', 'env_configuration', 'get_contacts', 'get_pixel_obs', 'hard_reset', 'has_offscreen_renderer', 'has_renderer', 'horizon', 'ignore_done', 'initialize_renderer', 'initialize_time', 'main_table_size', 'model', 'model_timestep', 'modify_observable', 'num_cameras', 'num_robots', 'observation_modalities', 'observation_names', 'observation_spec', 'pipette001', 'pipette001_body_id', 'pipette002', 'pipette002_body_id', 'pipette003', 'pipette003_body_id', 'pipette004', 'pipette004_body_id', 'placement_initializer', 'render', 'render_camera', 'render_collision_mesh', 'render_gpu_device_id', 'render_visual_mesh', 'renderer', 'renderer_config', 'reset', 'reset_from_xml_string', 'reward', 'reward_scale', 'reward_shaping', 'robot_configs', 'robot_names', 'robots', 'set_camera_pos_quat', 'set_xml_processor', 'sim', 'sim_state_initial', 'step', 'table_friction', 'table_offset', 'timestep', 'tube001', 'tube001_body_id', 'tube002', 'tube002_body_id', 'tube003', 'tube003_body_id', 'tube004', 'tube004_body_id', 'tube005', 'tube006', 'tube007', 'tube008', 'use_camera_obs', 'use_object_obs', 'viewer', 'viewer_get_obs', 'visualize']
+
+* env.robots[0] = ['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_action_split_idx', '_create_arm_sensors', '_hand_ang_vel', '_hand_orn', '_hand_pos', '_hand_pose', '_hand_quat', '_hand_total_velocity', '_hand_vel', '_input2dict', '_joint_positions', '_joint_split_idx', '_joint_velocities', '_load_controller', '_ref_gripper_joint_pos_indexes', '_ref_gripper_joint_vel_indexes', '_ref_joint_actuator_indexes', '_ref_joint_gripper_actuator_indexes', '_ref_joint_indexes', '_ref_joint_pos_indexes', '_ref_joint_vel_indexes', '_visualize_grippers', 'action_dim', 'action_limits', 'arms', 'base_ori', 'base_pos', 'check_q_limits', 'control', 'control_freq', 'controller', 'controller_config', 'dof', 'ee_force', 'ee_ft_integral', 'ee_torque', 'eef_cylinder_id', 'eef_rot_offset', 'eef_site_id', 'get_sensor_measurement', 'grip_action', 'gripper', 'gripper_joints', 'gripper_type', 'has_gripper', 'idn', 'init_qpos', 'initialization_noise', 'joint_indexes', 'js_energy', 'load_model', 'mount_type', 'name', 'pose_in_base_from_name', 'recent_actions', 'recent_ee_acc', 'recent_ee_forcetorques', 'recent_ee_pose', 'recent_ee_vel', 'recent_ee_vel_buffer', 'recent_qpos', 'recent_torques', 'reset', 'reset_sim', 'robot_joints', 'robot_model', 'set_robot_joint_positions', 'setup_observables', 'setup_references', 'sim', 'torque_limits', 'torques', 'visualize']
+
+* dir(obs) = ['__class__', '__class_getitem__', '__contains__', '__delattr__', '__delitem__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getitem__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__ior__', '__iter__', '__le__', '__len__', '__lt__', '__ne__', '__new__', '__or__', '__reduce__', '__reduce_ex__', '__repr__', '__reversed__', '__ror__', '__setattr__', '__setitem__', '__sizeof__', '__str__', '__subclasshook__', 'clear', 'copy', 'fromkeys', 'get', 'items', 'keys', 'move_to_end', 'pop', 'popitem', 'setdefault', 'update', 'values']
+{
+       Key: robot0_joint_pos_cos, Value.shape: (15,)
+       Key: robot0_joint_pos_sin, Value.shape: (15,)
+       Key: robot0_joint_vel, Value.shape: (15,)
+
+       Key: robot0_right_eef_pos, Value.shape: (3,)
+       Key: robot0_right_eef_quat, Value.shape: (4,)
+       Key: robot0_right_gripper_qpos, Value.shape: (2,)
+       Key: robot0_right_gripper_qvel, Value.shape: (2,)
+
+       Key: robot0_left_eef_pos, Value.shape: (3,)
+       Key: robot0_left_eef_quat, Value.shape: (4,)
+       Key: robot0_left_gripper_qpos, Value.shape: (2,)
+       Key: robot0_left_gripper_qvel, Value.shape: (2,)
+
+       Key: frontview_image, Value.shape: (1536, 2560, 3)
+
+       Key: pipette001_pos, Value.shape: (3,)
+       Key: pipette001_quat, Value.shape: (4,)
+       Key: pipette002_pos, Value.shape: (3,)
+       Key: pipette002_quat, Value.shape: (4,)
+       Key: pipette003_pos, Value.shape: (3,)
+       Key: pipette003_quat, Value.shape: (4,)
+       Key: pipette004_pos, Value.shape: (3,)
+       Key: pipette004_quat, Value.shape: (4,)
+
+       Key: tube001_pos, Value.shape: (3,)
+       Key: tube001_quat, Value.shape: (4,)
+       Key: tube002_pos, Value.shape: (3,)
+       Key: tube002_quat, Value.shape: (4,)
+       Key: tube003_pos, Value.shape: (3,)
+       Key: tube003_quat, Value.shape: (4,)
+       Key: tube004_pos, Value.shape: (3,)
+       Key: tube004_quat, Value.shape: (4,)
+       
+       Key: robot0_proprio-state, Value.shape: (67,)
+       Key: object-state, Value.shape: (56,)
+}
        
