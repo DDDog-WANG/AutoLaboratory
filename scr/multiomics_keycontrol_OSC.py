@@ -86,6 +86,7 @@ for n in tqdm(range(args.t)):
     # print(action)
     action_seq.append(action)
     obs, reward, done, _ = env.step(action)
+    print(reward)
     env.render()
 env.close()
 action_seq = np.array(action_seq)

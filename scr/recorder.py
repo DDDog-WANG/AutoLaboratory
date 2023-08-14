@@ -19,23 +19,24 @@ if __name__ == "__main__":
     parser.add_argument("--width", type=int, default=2560)
     args = parser.parse_args()
 
-writer = imageio.get_writer("../videos/"+args.video_name+".mp4", fps=100)
+writer = imageio.get_writer("../../videos/"+args.video_name+".mp4", fps=100)
 
 controller_config = load_controller_config(default_controller="JOINT_POSITION")
 env = suite.make(
     args.environment,
     args.robots,
-    # gripper_types=["PandaGripper"],
     controller_configs=controller_config,
     has_renderer=False,
     has_offscreen_renderer=True,
-    control_freq=100,
+    control_freq=50,
     render_camera=args.camera,
     camera_names=args.camera,
     camera_heights=args.height,
     camera_widths=args.width,
 )
-
+obs = env.reset()
+for key,value in obs.items():
+    print(f"Key: {key}, Value.shape: {value.shape}")
 action = np.zeros(env.robots[0].dof)
 
 # obs = env.reset()
@@ -47,3 +48,7 @@ for n in tqdm(range(args.t)):
     writer.append_data(frame)
 env.close()
 writer.close()
+
+# print("👑 env._get_observations(): ",dir(obs))
+for key,value in obs.items():
+    print(f"Key: {key}, Value.shape: {value.shape}")

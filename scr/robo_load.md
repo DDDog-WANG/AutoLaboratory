@@ -89,3 +89,6 @@
 
 
 
+* OSC_POSE / JOINT_POSITION / ...
+   * action[:m] => robot0_left_eef_pos / eef1
+   * action[m:] => robot0_right_eef_pos / eef0
