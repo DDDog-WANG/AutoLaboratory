@@ -22,6 +22,7 @@ controller_config = load_controller_config(default_controller="OSC_POSE")
 env = suite.make(
     args.environment,
     args.robots,
+    # gripper_types="PandaGripper",
     controller_configs=controller_config,
     has_renderer=True,
     has_offscreen_renderer=True,
@@ -82,7 +83,7 @@ listener.start()
 
 
 obs = env.reset()
-for n in tqdm(range(args.t)):
+for n in range(args.t):
     # print(action)
     action_seq.append(action)
     obs, reward, done, _ = env.step(action)

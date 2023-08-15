@@ -52,7 +52,6 @@ for n in range(10):
 
 print("👑 env: ",dir(env))
 print("👑 env.robots[0]: ",dir(env.robots[0]))
-
 print("👑 env._get_observations(): ",dir(obs))
 for key,value in obs.items():
     print(f"🟡 Key: {key}, Value.shape: {value.shape}")
