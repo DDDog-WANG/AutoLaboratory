@@ -1,7 +1,7 @@
 import robosuite as suite
 from robosuite.wrappers.gym_wrapper import GymWrapper
 import numpy as np
-from stable_baselines3 import DDPG , SAC
+from stable_baselines3 import DDPG , SAC, PPO
 from stable_baselines3.common.buffers import ReplayBuffer
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from sb3_contrib.common.wrappers import TimeFeatureWrapper
@@ -56,11 +56,13 @@ action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.2)
 # action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions), theta=0.1, sigma=0.2)
 
 if args.model_name == "DDPG":
-    model = DDPG(policy="MlpPolicy", env=env, replay_buffer_class=ReplayBuffer, verbose=1, gamma = 0.99, batch_size=batch_size, 
-                buffer_size=100000, learning_rate = learning_rate, action_noise = action_noise, policy_kwargs = policy_kwargs)
+    model = DDPG(policy="MlpPolicy", env=env, replay_buffer_class=ReplayBuffer, verbose=1, gamma=0.95, batch_size=batch_size, 
+                buffer_size=100000, learning_rate=learning_rate, action_noise=action_noise, policy_kwargs=policy_kwargs)
 elif args.model_name == "SAC":
-    model = SAC(policy="MlpPolicy", env=env, replay_buffer_class=ReplayBuffer, verbose=1, gamma = 0.99, batch_size=batch_size, 
-                buffer_size=100000, learning_rate = learning_rate, action_noise = action_noise, policy_kwargs = policy_kwargs)
+    model = SAC(policy="MlpPolicy", env=env, replay_buffer_class=ReplayBuffer, verbose=1, gamma = 0.95, batch_size=batch_size, 
+                buffer_size=100000, learning_rate=learning_rate, action_noise=action_noise, policy_kwargs=policy_kwargs)
+elif args.model_name == "PPO":
+    model = PPO(policy="MlpPolicy", env=env, verbose=1, gamma=0.95, batch_size=batch_size)
 # model = SAC.load(workdir+'/models/SAC_big', env = env, learning_rate = learning_rate, action_noise = action_noise)
 model.learn(total_timesteps=total_timesteps)
 model.save(args.model_save)
