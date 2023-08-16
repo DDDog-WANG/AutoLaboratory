@@ -43,6 +43,7 @@ time.sleep(1)
 for n in range(10):
     action=np.concatenate((np.zeros(7),np.array([0,1,0,0,0,0,1])))
     obs, reward, done, _ = env.step(action)
+
 #     env.render()
 # env.close()
 
@@ -50,10 +51,10 @@ for n in range(10):
 #     joint_name = env.sim.model.joint_id2name(joint_index)
 #     print(f' "{joint_index}: {joint_name}" ', end="; ")
 
-print("👑 env: ",dir(env))
-print("👑 env.robots[0]: ",dir(env.robots[0]))
-print("👑 env._get_observations(): ",dir(obs))
+# print("👑 env: ",dir(env))
+# print("👑 env.robots[0]: ",dir(env.robots[0]))
+# print("👑 env._get_observations(): ",dir(obs))
 for key,value in obs.items():
     print(f"🟡 Key: {key}, Value.shape: {value.shape}")
-    print(value)
+    print(type(value))
 

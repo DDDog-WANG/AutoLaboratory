@@ -1,7 +1,7 @@
 import robosuite as suite
 from robosuite.wrappers.gym_wrapper import GymWrapper
 import numpy as np
-from stable_baselines3 import DDPG , SAC
+from stable_baselines3 import DDPG , SAC, PPO
 from stable_baselines3.common.buffers import ReplayBuffer
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from sb3_contrib.common.wrappers import TimeFeatureWrapper
@@ -60,6 +60,8 @@ if args.model_name == "DDPG":
     model = DDPG.load(args.model_save)
 elif args.model_name == "SAC":
     model = SAC.load(args.model_save)
+elif args.model_name == "PPO":
+    model = PPO.load(args.model_save)
 
 obs = env.reset()
 for n in range(args.horizon):
