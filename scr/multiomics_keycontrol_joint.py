@@ -5,9 +5,10 @@ from tqdm import tqdm
 import robosuite as suite
 from robosuite import load_controller_config
 from robosuite.utils.transform_utils import quat2mat, mat2euler
-# from pynput import keyboard
+from pynput import keyboard
 from robosuite.wrappers.gym_wrapper import GymWrapper
 from sb3_contrib.common.wrappers import TimeFeatureWrapper
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -34,63 +35,49 @@ env = suite.make(
     camera_heights=args.height,
     camera_widths=args.width,
 )
-
-# env = suite.make(
-#     args.environment,
-#     args.robots,
-#     has_renderer=False,
-#     has_offscreen_renderer=False,
-#     use_camera_obs=False,
-#     control_freq=50,
-#     render_camera=args.camera,
-#     render_gpu_device_id=0,
-#     horizon=args.horizon,
-# )
 env = GymWrapper(env) 
 env = TimeFeatureWrapper(env)
 
 action = np.zeros(env.robots[0].dof)
-action = np.random.uniform(-1, 1, env.robots[0].dof)
 action_seq = []
 obs_seq = []
 reward_seq = []
 
-# delta = 5
-# key_li = ["0","1","2","3","4","5","6","7","8","~", "!",'"',"#","$","%","&","'","("]
-# listener = keyboard.Listener()
-# def on_press(key):
-#     try:
-#         for i in range(len(key_li)):
-#             if i == 0:
-#                 if key.char == key_li[i]:
-#                     action[0] = delta
-#             elif i <= 8:
-#                 if key.char == key_li[i]:
-#                     action[i+8] = delta
-#             elif i == 9:
-#                 if key.char == key_li[i]:
-#                     action[0] = -delta
-#             elif i <= 17:
-#                 if key.char == key_li[i]:
-#                     action[i-1] = -delta
-#     except AttributeError:
-#         pass
+delta = 10
+key_li = ["0","1","2","3","4","5","6","7","8","~", "!",'"',"#","$","%","&","'","("]
+listener = keyboard.Listener()
+def on_press(key):
+    try:
+        for i in range(len(key_li)):
+            if i == 0:
+                if key.char == key_li[i]:
+                    action[0] = delta
+            elif i <= 8:
+                if key.char == key_li[i]:
+                    action[i+8] = delta
+            elif i == 9:
+                if key.char == key_li[i]:
+                    action[0] = -delta
+            elif i <= 17:
+                if key.char == key_li[i]:
+                    action[i-1] = -delta
+    except AttributeError:
+        pass
+def on_release(key):
+    try:
+        action[:] = 0
+    except AttributeError:
+        pass
+listener = keyboard.Listener(on_press=on_press, on_release=on_release)
+listener.start()
 
-# def on_release(key):
-#     try:
-#         action[:] = 0
-#     except AttributeError:
-#         pass
 
-# listener = keyboard.Listener(on_press=on_press, on_release=on_release)
-# listener.start()
 obs = env.reset()
 for n in tqdm(range(args.horizon)):
     obs_seq.append(obs)
     action_seq.append(action)
 
     obs, reward, done, _ = env.step(action)
-    # obs_wrap, reward_wrap, _, _ = env.step(action)
     reward_seq.append(reward)
 
     env.unwrapped.render()
