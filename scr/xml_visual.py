@@ -4,13 +4,13 @@ from robosuite.models.robots import Maholo
 
 ubuntu_dir = "/home/wang/Desktop/robosuite"
 mac_dir = "/media/psf/Home/Desktop/Github/Maholo/robosuite_dir"
-
-maholo_robot = "/models/assets/robots/baxter/robot.xml"
+mac_ubuntu_dir ="/home/parallels/.local/lib/python3.10/site-packages/robosuite"
+maholo_robot = "/models/assets/robots/maholo/robot.xml"
 gripper = "/models/assets/grippers/maholo_gripper_l.xml"
 room = "/models/assets/arenas/laboratory_arena.xml"
 object = "/models/assets/objects/1.5ml tube main.xml"
 obj = "/models/assets/objects/1.5ml_tube.xml"
-model = mujoco.MjModel.from_xml_path(ubuntu_dir + gripper)
+model = mujoco.MjModel.from_xml_path(mac_ubuntu_dir + maholo_robot)
 mujoco_robot = Maholo()
 data = mujoco.MjData(model)
 
