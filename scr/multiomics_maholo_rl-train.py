@@ -16,7 +16,7 @@ if __name__ == "__main__":
     parser.add_argument("--robots", type=str, default="Maholo")
     parser.add_argument("--camera", type=str, default="frontview")
     parser.add_argument("--video_name", type=str, default="my_video")
-    parser.add_argument("--fps", type=int, default=30)
+    parser.add_argument("--fps", type=int, default=50)
     parser.add_argument("--horizon", type=int, default=1000)
     parser.add_argument("--height", type=int, default=1536)
     parser.add_argument("--width", type=int, default=2560)

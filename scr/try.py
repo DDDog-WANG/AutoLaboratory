@@ -21,7 +21,6 @@ if __name__ == "__main__":
     parser.add_argument("--episode", type=int, default=1)
     parser.add_argument("--height", type=int, default=1536)
     parser.add_argument("--width", type=int, default=2560)
-    parser.add_argument("--fix_initial_joint", type=bool, default=None)
     args = parser.parse_args()
 
 
@@ -39,6 +38,7 @@ env = suite.make(
     camera_heights=args.height,
     camera_widths=args.width,
     horizon=args.horizon,
+    initialization_noise=None
 )
 env = GymWrapper(env) 
 env = TimeFeatureWrapper(env)
@@ -46,67 +46,64 @@ env = TimeFeatureWrapper(env)
 # for key in env.robots[0].gripper:
 #     print(f"{key} hand: {env.robots[0].gripper[key]}")
 action_np = np.load("./collectdata/action_seq_OSC.npy")
+action_seq_joint = []
 # joint_positions = env.robots[0].sim.data.qpos
 # joint_positions = np.concatenate((joint_positions[:9],joint_positions[10:18]))
 # action = np.ones(env.robots[0].dof)
 
-# SAVE INITIAL JOINT POS
-# obs = env.reset()
-# initial_joint = {}
-# joint_names = env.sim.model.joint_names
-# joint_ids = [env.sim.model.joint_name2id(name) for name in joint_names]
-# for name, id in zip(joint_names, joint_ids): 
-#     joint_pos = env.sim.data.get_joint_qpos(name)
-#     print(f"Joint: {name}, ID: {id}, pos: {joint_pos}")
-#     initial_joint[name] = joint_pos.tolist()
-# with open("./collectdata/initial_joint.json", "w") as file:
-#     json.dump(initial_joint, file)
 
-
-# SET INITIAL JOINT POS
-if not args.fix_initial_joint:
-    with open("./collectdata/initial_joint.json", "r") as file:
-        initial_joint = json.load(file)
+obs = env.reset()
+joint_names = env.sim.model.joint_names
+joint_ids = [env.sim.model.joint_name2id(name) for name in joint_names]
+joint_positions = env.robots[0].sim.data.qpos
+joint_positions = np.concatenate((joint_positions[:9],joint_positions[10:18]))
 
 for i in range(args.episode):
     print(f"👑 ROUND {i}")
     env.reset()
-    # SET INITIAL JOINT POS
-    if not args.fix_initial_joint:
-        print(args.fix_initial_joint)
-        for key,value in initial_joint.items():
-            # print(f"Joint Name: {key}, Joint ID: {value}")
-            env.sim.data.set_joint_qpos(key, value)
-        env.sim.forward()
-        eef_pos = env.sim.data.get_body_xpos("gripper0_left_eef")
-        eef_quat = env.sim.data.get_body_xquat("gripper0_left_eef")
-        eef_euler = mat2euler(quat2mat(eef_quat))
-        print(f"Initial left_eef:  {eef_pos}, {eef_euler}")
-        eef_pos = env.sim.data.get_body_xpos("gripper0_right_eef")
-        eef_quat = env.sim.data.get_body_xquat("gripper0_right_eef")
-        eef_euler = mat2euler(quat2mat(eef_quat))
-        print(f"Initial right_eef: {eef_pos}, {eef_euler}")
+    eef_pos = env.sim.data.get_body_xpos("gripper0_left_eef")
+    eef_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("gripper0_left_eef")))
+    print(f"left_eef : {eef_pos}, {eef_euler}")
+    eef_pos = env.sim.data.get_body_xpos("gripper0_right_eef")
+    eef_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("gripper0_right_eef")))
+    print(f"right_eef: {eef_pos}, {eef_euler}")
+    pipette_pos = env.sim.data.get_body_xpos("P1000_withtip004_main")
+    pipette_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("P1000_withtip004_main")))
+    print(f"pipette  : {pipette_pos}, {pipette_euler}")
+    tube_pos = env.sim.data.get_body_xpos("tube1_5ml008_main")
+    tube_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("tube1_5ml008_main")))
+    print(f"tube     : {tube_pos}, {tube_euler}")
 
-    for n in range(args.horizon):
-        # action = np.random.uniform(-1, 1, size=env.robots[0].dof)
-        # action = action_np[n]
-        action = np.zeros(14)
 
-        obs, reward, done, _ = env.step(action)
+    for n in tqdm(range(args.horizon)):
 
-        eef_pos = env.sim.data.get_body_xpos("gripper0_left_eef")
-        eef_quat = env.sim.data.get_body_xquat("gripper0_left_eef")
-        eef_euler = mat2euler(quat2mat(eef_quat))
-        print(f"{n:03} left_eef:  {eef_pos}, {eef_euler}")
-        eef_pos = env.sim.data.get_body_xpos("gripper0_right_eef")
-        eef_quat = env.sim.data.get_body_xquat("gripper0_right_eef")
-        eef_euler = mat2euler(quat2mat(eef_quat))
-        print(f"{n:03} right_eef: {eef_pos}, {eef_euler}")
+        # eef_pos = env.sim.data.get_body_xpos("gripper0_left_eef")
+        # eef_quat = env.sim.data.get_body_xquat("gripper0_left_eef")
+        # eef_euler = mat2euler(quat2mat(eef_quat))
+        # print(f"{n:03} left_eef:  {eef_pos}, {eef_euler}")
+        # eef_pos = env.sim.data.get_body_xpos("gripper0_right_eef")
+        # eef_quat = env.sim.data.get_body_xquat("gripper0_right_eef")
+        # eef_euler = mat2euler(quat2mat(eef_quat))
+        # print(f"{n:03} right_eef: {eef_pos}, {eef_euler}")
 
         # eef_pos = env.sim.data.get_body_xpos("gripper0_eef")
         # eef_quat = env.sim.data.get_body_xquat("gripper0_eef")
         # eef_euler = mat2euler(quat2mat(eef_quat))
         # print(f"eef:  {eef_pos}, {eef_euler}")
+
+        # action = np.zeros(14)
+        # action = np.random.uniform(-1, 1, size=env.robots[0].dof)
+        action = action_np[n]
+        # print(action)
+
+        obs, reward, done, _ = env.step(action)
+
+        # pre_joint_positions = joint_positions
+        # joint_positions = env.robots[0].sim.data.qpos
+        # joint_positions = np.concatenate((joint_positions[:9],joint_positions[10:18]))
+        # delta_joint_positions = joint_positions - pre_joint_positions
+        # action_seq_joint.append(delta_joint_positions)
+        # print(delta_joint_positions)
 
         # cube_pos = env.sim.data.get_body_xpos("cube_main")
         # cube_quat = env.sim.data.get_body_xquat("cube_main")
@@ -115,6 +112,8 @@ for i in range(args.episode):
 
         env.unwrapped.render()
 env.unwrapped.close()
+
+
 # # SAVE INITIAL JOINT POS
 # initial_joint = {}
 # joint_names = env.sim.model.joint_names
@@ -154,3 +153,22 @@ env.unwrapped.close()
 # for key,value in obs.items():
 #     print(f"🟡 Key: {key}, Value.shape: {value.shape}")
 #     print(type(value))
+
+
+# # SAVE INITIAL JOINT POS
+# initial_joint = {}
+# for name, id in zip(joint_names, joint_ids): 
+#     joint_pos = env.sim.data.get_joint_qpos(name)
+#     print(f"Joint: {name}, ID: {id}, pos: {joint_pos}")
+#     initial_joint[name] = joint_pos.tolist()
+# with open("./collectdata/initial_joint.json", "w") as file:
+#     json.dump(initial_joint, file)
+
+# # SET INITIAL JOINT POS
+# with open("./collectdata/initial_joint.json", "r") as file:
+#     initial_joint = json.load(file)
+# if args.fix_initial_joint=="True":
+#     for key,value in initial_joint.items():
+#         # print(f"Joint Name: {key}, Joint ID: {value}")
+#         env.sim.data.set_joint_qpos(key, value)
+#     env.sim.forward()
