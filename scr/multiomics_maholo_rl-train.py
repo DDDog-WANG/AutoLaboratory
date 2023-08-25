@@ -1,4 +1,5 @@
 import robosuite as suite
+from robosuite import load_controller_config
 from robosuite.wrappers.gym_wrapper import GymWrapper
 import numpy as np
 from stable_baselines3 import DDPG , SAC, PPO
@@ -10,10 +11,12 @@ import argparse
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--workdir", type=str, help="work directory")
-    parser.add_argument("--model_save", type=str, help="save to directory")
+    parser.add_argument("--workdir", type=str)
+    parser.add_argument("--model_save", type=str)
+    parser.add_argument("--log_save", type=str)
     parser.add_argument("--environment", type=str, default="MaholoLaboratory")
     parser.add_argument("--robots", type=str, default="Maholo")
+    parser.add_argument("--controller", type=str, default="OSC_POSE")
     parser.add_argument("--camera", type=str, default="frontview")
     parser.add_argument("--video_name", type=str, default="my_video")
     parser.add_argument("--fps", type=int, default=50)
@@ -27,9 +30,11 @@ if __name__ == "__main__":
     parser.add_argument("--episodes", type=int, default=100)
     args = parser.parse_args()
 
+controller_config = load_controller_config(default_controller=args.controller)
 env = suite.make(
     args.environment,
     args.robots,
+    controller_configs=controller_config,
     has_renderer=False,
     has_offscreen_renderer=False,
     use_camera_obs=False,
@@ -47,22 +52,25 @@ print(f"\nTimeFeature GYM Wrapper obs.shape: {env.reset().shape}\n", flush=True)
 batch_size = args.batch_size
 learning_rate = args.learning_rate
 total_timesteps = args.horizon * args.episodes
-policy_kwargs = {'net_arch' : [512, 512, 512, 512], 
-                'n_critics' : 4,
+policy_kwargs = {'net_arch' : [512, 512, 512], 
+                'n_critics' : 2,
                 }
-n_actions = env.robots[0].action_dim
+if args.controller == "JOINT_POSITION":
+    n_actions = env.robots[0].action_dim
+elif args.controller == "OSC_POSE":
+    n_actions = 14
 print(f"n_actions: {n_actions}\n", flush=True)
 action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.2)
 # action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions), theta=0.1, sigma=0.2)
 
 if args.model_name == "DDPG":
-    model = DDPG(policy="MlpPolicy", env=env, replay_buffer_class=ReplayBuffer, verbose=1, gamma=0.95, batch_size=batch_size, 
-                buffer_size=100000, learning_rate=learning_rate, action_noise=action_noise, policy_kwargs=policy_kwargs)
+    model = DDPG(policy="MlpPolicy", env=env, replay_buffer_class=ReplayBuffer, verbose=1, gamma=0.9, batch_size=batch_size, 
+                buffer_size=100000, learning_rate=learning_rate, action_noise=action_noise, policy_kwargs=policy_kwargs, tensorboard_log=args.log_save)
 elif args.model_name == "SAC":
-    model = SAC(policy="MlpPolicy", env=env, replay_buffer_class=ReplayBuffer, verbose=1, gamma = 0.95, batch_size=batch_size, 
-                buffer_size=100000, learning_rate=learning_rate, action_noise=action_noise, policy_kwargs=policy_kwargs)
+    model = SAC(policy="MlpPolicy", env=env, replay_buffer_class=ReplayBuffer, verbose=1, gamma = 0.9, batch_size=batch_size, 
+                buffer_size=100000, learning_rate=learning_rate, action_noise=action_noise, policy_kwargs=policy_kwargs, tensorboard_log=args.log_save)
 elif args.model_name == "PPO":
-    model = PPO(policy="MlpPolicy", env=env, verbose=1, gamma=0.95, batch_size=batch_size)
+    model = PPO(policy="MlpPolicy", env=env, verbose=1, gamma=0.9, batch_size=batch_size, tensorboard_log=args.log_save)
 # model = SAC.load(workdir+'/models/SAC_big', env = env, learning_rate = learning_rate, action_noise = action_noise)
 model.learn(total_timesteps=total_timesteps)
 model.save(args.model_save)

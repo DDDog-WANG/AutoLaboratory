@@ -1,4 +1,5 @@
 import robosuite as suite
+from robosuite import load_controller_config
 from robosuite.wrappers.gym_wrapper import GymWrapper
 import numpy as np
 from stable_baselines3 import DDPG , SAC, PPO
@@ -10,10 +11,12 @@ import imageio
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--workdir", type=str, help="work directory")
-    parser.add_argument("--model_save", type=str, help="save to directory")
+    parser.add_argument("--workdir", type=str)
+    parser.add_argument("--model_save", type=str)
+    parser.add_argument("--log_save", type=str)
     parser.add_argument("--environment", type=str, default="MaholoLaboratory")
     parser.add_argument("--robots", type=str, default="Maholo")
+    parser.add_argument("--controller", type=str, default="JOINT_POSITION")
     parser.add_argument("--camera", type=str, default="frontview")
     parser.add_argument("--video_name", type=str, default="rl_video")
     parser.add_argument("--fps", type=int, default=30)
@@ -27,9 +30,11 @@ if __name__ == "__main__":
     parser.add_argument("--episodes", type=int, default=100)
     args = parser.parse_args()
 
+controller_config = load_controller_config(default_controller=args.controller)
 env_recoder = suite.make(
     args.environment,
     args.robots,
+    controller_configs=controller_config,
     has_renderer=False,
     has_offscreen_renderer=True,
     use_camera_obs=True,
@@ -44,6 +49,7 @@ env_recoder = suite.make(
 env = suite.make(
     args.environment,
     args.robots,
+    controller_configs=controller_config,
     has_renderer=False,
     has_offscreen_renderer=False,
     use_camera_obs=False,
