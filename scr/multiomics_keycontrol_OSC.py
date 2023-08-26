@@ -2,7 +2,7 @@ from math import pi, degrees
 import argparse
 import numpy as np
 from tqdm import tqdm
-import json
+import json, time
 from copy import deepcopy
 import robosuite as suite
 from robosuite import load_controller_config
@@ -16,9 +16,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--environment", type=str, default="MaholoLaboratory")
     parser.add_argument("--robots", type=str, default="Maholo")
-    parser.add_argument("--camera", type=str, default="frontview")
     parser.add_argument("--video_name", type=str, default="my_video")
     parser.add_argument("--horizon", type=int, default=1000)
+    parser.add_argument("--episode", type=int, default=1)
+    parser.add_argument("--camera", type=str, default="frontview")
     parser.add_argument("--height", type=int, default=1536)
     parser.add_argument("--width", type=int, default=2560)
     args = parser.parse_args()
@@ -42,13 +43,8 @@ env = suite.make(
 env = GymWrapper(env) 
 env = TimeFeatureWrapper(env)
 
-action = np.zeros(14)
-action_seq = []
-action_seq_joint = []
-obs_seq = []
-reward_seq = []
 
-delta = 1
+delta = 0.6
 arm_delta = 7
 def on_press(key):
     global action
@@ -82,6 +78,36 @@ def on_press(key):
             action[6+arm_delta] = delta
         elif key.char == "0":
             action[6+arm_delta] = -delta
+
+        if key.char == "W":
+            action[0] = -delta
+        elif key.char == "S":
+            action[0] = delta
+        elif key.char == "A":
+            action[1] = -delta
+        elif key.char == "D":
+            action[1] = delta
+        elif key.char == "Q":
+            action[2] = delta
+        elif key.char == "E":
+            action[2] = -delta
+
+        elif key.char == "J":
+            action[3] = delta/2
+        elif key.char == "L":
+            action[3] = -delta/2
+        elif key.char == "K":
+            action[4] = delta/2
+        elif key.char == "I":
+            action[4] = -delta/2
+        elif key.char == "O":
+            action[5] = delta/2
+        elif key.char == "U":
+            action[5] = -delta/2
+        elif key.char == "!":
+            action[6] = delta
+        elif key.char == "~":
+            action[6] = -delta
     except AttributeError:
         pass
 def on_release(key):
@@ -93,8 +119,21 @@ def on_release(key):
 listener = keyboard.Listener(on_press=on_press, on_release=on_release)
 listener.start()
 
+
+
+# joint_names = env.sim.model.joint_names
+# joint_ids = [env.sim.model.joint_name2id(name) for name in joint_names] 
+
+
+action = np.zeros(14)
+action_seq = []
+action_seq_joint = []
+obs_seq = []
+reward_seq = []
+
 obs = env.reset()
 
+print(f"👑 ROUND {args.episode}")
 eef_pos = env.sim.data.get_body_xpos("gripper0_left_eef")
 eef_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("gripper0_left_eef")))
 print(f"left_eef : {eef_pos}, {eef_euler}")
@@ -108,15 +147,15 @@ tube_pos = env.sim.data.get_body_xpos("tube1_5ml008_main")
 tube_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("tube1_5ml008_main")))
 print(f"tube     : {tube_pos}, {tube_euler}")
 
-# joint_names = env.sim.model.joint_names
-# joint_ids = [env.sim.model.joint_name2id(name) for name in joint_names] 
 joint_positions = env.robots[0].sim.data.qpos
 joint_positions = np.concatenate((joint_positions[:9],joint_positions[10:18]))
+time.sleep(1)
 
-for n in range(args.horizon):
+for n in tqdm(range(args.horizon)):
+
     obs_seq.append(obs)
     action_seq.append(action.copy())
-    print(action)
+
     obs, reward, done, _ = env.step(action)
     reward_seq.append(reward)
 
@@ -131,18 +170,19 @@ env.close()
 
 action_seq = np.array(action_seq)
 print("action_seq.shape: ",action_seq.shape)
-np.save("./collectdata/action_seq_OSC.npy", action_seq)
+np.save("./collectdata/action_seq_OSC_"+str(args.episode)+".npy", action_seq)
 action_seq_joint = np.array(action_seq_joint)
 print("action_seq_joint.shape: ",action_seq_joint.shape)
-np.save("./collectdata/action_seq_joint.npy", action_seq_joint)
+np.save("./collectdata/action_seq_joint_"+str(args.episode)+".npy", action_seq_joint)
 
 obs_seq = np.array(obs_seq)
 print("obs_seq.shape: ",obs_seq.shape)
-np.save("./collectdata/obs_seq_OSC.npy", obs_seq)
-np.save("./collectdata/obs_seq_joint.npy", obs_seq)
+np.save("./collectdata/obs_seq_OSC_"+str(args.episode)+".npy", obs_seq)
 
 reward_seq = np.array(reward_seq)
 print("reward_seq.shape: ",reward_seq.shape)
-np.save("./collectdata/reward_seq_OSC.npy", reward_seq)
-np.save("./collectdata/reward_seq_joint.npy", reward_seq)
+np.save("./collectdata/reward_seq_OSC_"+str(args.episode)+".npy", reward_seq)
+
+
+
 

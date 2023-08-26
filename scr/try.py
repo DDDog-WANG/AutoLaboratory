@@ -58,8 +58,8 @@ joint_ids = [env.sim.model.joint_name2id(name) for name in joint_names]
 joint_positions = env.robots[0].sim.data.qpos
 joint_positions = np.concatenate((joint_positions[:9],joint_positions[10:18]))
 
-for i in range(args.episode):
-    print(f"👑 ROUND {i}")
+for ep in range(args.episode):
+    print(f"👑 ROUND {ep}")
     env.reset()
     eef_pos = env.sim.data.get_body_xpos("gripper0_left_eef")
     eef_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("gripper0_left_eef")))
