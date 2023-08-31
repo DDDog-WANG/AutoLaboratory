@@ -8,11 +8,14 @@ from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckA
 from sb3_contrib.common.wrappers import TimeFeatureWrapper
 import argparse
 import imageio
+from tqdm import tqdm
+import torch
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--workdir", type=str)
     parser.add_argument("--model_save", type=str)
+    parser.add_argument("--model_load", type=str)
     parser.add_argument("--log_save", type=str)
     parser.add_argument("--environment", type=str, default="MaholoLaboratory")
     parser.add_argument("--robots", type=str, default="Maholo")
@@ -45,6 +48,7 @@ env_recoder = suite.make(
     camera_widths=args.width,
     render_gpu_device_id=0,
     horizon=args.horizon,
+    initialization_noise=None
 )
 env = suite.make(
     args.environment,
@@ -62,15 +66,20 @@ env = GymWrapper(env)
 env = TimeFeatureWrapper(env)
 
 writer = imageio.get_writer(args.workdir+"/videos/"+args.video_name+".mp4", fps=args.fps)
+
+policy_kwargs = {'net_arch' : [512, 512, 512, 512], 
+                'n_critics' : 4,
+                }
 if args.model_name == "DDPG":
-    model = DDPG.load(args.model_save)
+    model = DDPG(policy="MlpPolicy", env=env, policy_kwargs=policy_kwargs)
 elif args.model_name == "SAC":
-    model = SAC.load(args.model_save)
+    model = SAC(policy="MlpPolicy", env=env, policy_kwargs=policy_kwargs)
 elif args.model_name == "PPO":
-    model = PPO.load(args.model_save)
+    model = PPO(policy="MlpPolicy", env=env, policy_kwargs=policy_kwargs)
+model.policy.actor.load_state_dict(torch.load(args.model_save))
 
 obs = env.reset()
-for n in range(args.horizon):
+for n in tqdm(range(args.horizon)):
     action, _states = model.predict(obs, deterministic = True)
     obs, reward, done, _ = env.step(action)
     obs_recoder, _, _, _ = env_recoder.step(action)
