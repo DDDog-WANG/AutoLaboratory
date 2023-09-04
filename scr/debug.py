@@ -9,7 +9,7 @@ from robosuite import load_controller_config
 from robosuite.utils.transform_utils import quat2mat, mat2euler
 from robosuite.wrappers.gym_wrapper import GymWrapper
 from sb3_contrib.common.wrappers import TimeFeatureWrapper
-np.set_printoptions(precision=6, suppress=True)
+np.set_printoptions(precision=4, suppress=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -18,18 +18,18 @@ if __name__ == "__main__":
     parser.add_argument("--camera", type=str, default="frontview")
     parser.add_argument("--video_name", type=str, default="my_video")
     parser.add_argument("--horizon", type=int, default=1000)
-    parser.add_argument("--episode", type=int, default=1)
+    parser.add_argument("--episode", type=int, default=50)
     parser.add_argument("--height", type=int, default=1536)
     parser.add_argument("--width", type=int, default=2560)
     args = parser.parse_args()
 
 
-controller_config = load_controller_config(default_controller="OSC_POSE")
+controller_config = load_controller_config(default_controller="JOINT_POSITION")
 env = suite.make(
     args.environment,
     args.robots,
     controller_configs=controller_config,
-    has_renderer=True,
+    has_renderer=False,
     has_offscreen_renderer=True,
     use_camera_obs=False,
     control_freq=50,
@@ -45,22 +45,17 @@ env = TimeFeatureWrapper(env)
 
 # for key in env.robots[0].gripper:
 #     print(f"{key} hand: {env.robots[0].gripper[key]}")
-action_np = np.load("./collectdata/action_seq_OSC.npy")
+action_seq = np.load("./collectdata/action_joint/action_seq_joint.npy")
 action_seq_joint = []
-# joint_positions = env.robots[0].sim.data.qpos
-# joint_positions = np.concatenate((joint_positions[:9],joint_positions[10:18]))
-# action = np.ones(env.robots[0].dof)
 
-
-obs = env.reset()
-joint_names = env.sim.model.joint_names
-joint_ids = [env.sim.model.joint_name2id(name) for name in joint_names]
-joint_positions = env.robots[0].sim.data.qpos
-joint_positions = np.concatenate((joint_positions[:9],joint_positions[10:18]))
 
 for ep in range(args.episode):
     print(f"👑 ROUND {ep}")
     env.reset()
+    joint_positions = env.robots[0].sim.data.qpos
+    joint_positions = np.concatenate((joint_positions[:9],joint_positions[10:18]))
+    # joint_positions = joint_positions[:8]
+
     eef_pos = env.sim.data.get_body_xpos("gripper0_left_eef")
     eef_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("gripper0_left_eef")))
     print(f"left_eef : {eef_pos}, {eef_euler}")
@@ -74,43 +69,42 @@ for ep in range(args.episode):
     tube_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("tube1_5ml008_main")))
     print(f"tube     : {tube_pos}, {tube_euler}")
 
+    action = np.zeros(17)
+    action[ep] = 0.1
+    print(action)
 
-    for n in tqdm(range(args.horizon)):
+    print("✣✣✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢")
+    print("✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤")
 
-        # eef_pos = env.sim.data.get_body_xpos("gripper0_left_eef")
-        # eef_quat = env.sim.data.get_body_xquat("gripper0_left_eef")
-        # eef_euler = mat2euler(quat2mat(eef_quat))
-        # print(f"{n:03} left_eef:  {eef_pos}, {eef_euler}")
-        # eef_pos = env.sim.data.get_body_xpos("gripper0_right_eef")
-        # eef_quat = env.sim.data.get_body_xquat("gripper0_right_eef")
-        # eef_euler = mat2euler(quat2mat(eef_quat))
-        # print(f"{n:03} right_eef: {eef_pos}, {eef_euler}")
+    for n in range(args.horizon):
 
-        # eef_pos = env.sim.data.get_body_xpos("gripper0_eef")
-        # eef_quat = env.sim.data.get_body_xquat("gripper0_eef")
-        # eef_euler = mat2euler(quat2mat(eef_quat))
-        # print(f"eef:  {eef_pos}, {eef_euler}")
+        action = np.random.uniform(-1, 1, size=env.robots[0].dof)
+        # action = action_seq[n]
+        # action = np.array([action[0]/0.0034, 
+        #                   action[1]/0.0033, action[2]/0.0032, action[3]/0.0032, action[4]/0.0033, action[5]/0.0031, action[6]/0.0029, action[7]/0.0029, action[8]/0.0001, 
+        #                   action[9]/0.0032, action[10]/0.0031, action[11]/0.0032, action[12]/0.0033, action[13]/0.0029, action[14]/0.0027, action[15]/0.0026, action[16]/0.0001])
+        # print(f"{n:03} {action}")
 
-        # action = np.zeros(14)
-        # action = np.random.uniform(-1, 1, size=env.robots[0].dof)
-        action = action_np[n]
-        # print(action)
+        pre_joint_positions = joint_positions.copy()
 
         obs, reward, done, _ = env.step(action)
 
-        # pre_joint_positions = joint_positions
-        # joint_positions = env.robots[0].sim.data.qpos
-        # joint_positions = np.concatenate((joint_positions[:9],joint_positions[10:18]))
-        # delta_joint_positions = joint_positions - pre_joint_positions
-        # action_seq_joint.append(delta_joint_positions)
-        # print(delta_joint_positions)
+        joint_positions = env.robots[0].sim.data.qpos
+        joint_positions = np.concatenate((joint_positions[:9],joint_positions[10:18]))
+        # joint_positions = joint_positions[:8]
+
+        delta_joint_positions = joint_positions - pre_joint_positions
+        action_seq_joint.append(delta_joint_positions)
+        print(action/delta_joint_positions)
+
+
 
         # cube_pos = env.sim.data.get_body_xpos("cube_main")
         # cube_quat = env.sim.data.get_body_xquat("cube_main")
         # cube_euler = mat2euler(quat2mat(cube_quat))
         # print("cube: ",cube_pos, cube_euler)
 
-        env.unwrapped.render()
+        # env.unwrapped.render()
 env.unwrapped.close()
 
 
