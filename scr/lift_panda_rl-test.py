@@ -1,80 +1,94 @@
 import robosuite as suite
+from robosuite import load_controller_config
 from robosuite.wrappers.gym_wrapper import GymWrapper
 import numpy as np
-from stable_baselines3 import DDPG, SAC
+from stable_baselines3 import DDPG , SAC, PPO
 from stable_baselines3.common.buffers import ReplayBuffer
-from stable_baselines3.common.noise import NormalActionNoise
+from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from sb3_contrib.common.wrappers import TimeFeatureWrapper
-import sys
-modelname = sys.argv[1]
+import argparse
+import imageio
+from tqdm import tqdm
+import torch
 
-env = suite.make(
-    env_name="Lift",
-    robots="Panda",
-    has_renderer=True,
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--workdir", type=str)
+    parser.add_argument("--model_save", type=str)
+    parser.add_argument("--model_load", type=str)
+    parser.add_argument("--log_save", type=str)
+    parser.add_argument("--environment", type=str, default="Lift")
+    parser.add_argument("--robots", type=str, default="Panda")
+    parser.add_argument("--controller", type=str, default="OSE_POSE")
+    parser.add_argument("--camera", type=str, default="frontview")
+    parser.add_argument("--video_name", type=str, default="rl_video")
+    parser.add_argument("--fps", type=int, default=30)
+    parser.add_argument("--horizon", type=int, default=1000)
+    parser.add_argument("--height", type=int, default=1536)
+    parser.add_argument("--width", type=int, default=2560)
+
+    parser.add_argument("--model_name", type=str, default="DDPG")
+    parser.add_argument("--batch_size", type=int, default=4096)
+    parser.add_argument("--learning_rate", type=float, default=1e-3)
+    parser.add_argument("--episodes", type=int, default=100)
+    args = parser.parse_args()
+
+controller_config = load_controller_config(default_controller=args.controller)
+env_recoder = suite.make(
+    args.environment,
+    args.robots,
+    controller_configs=controller_config,
+    has_renderer=False,
     has_offscreen_renderer=True,
+    use_camera_obs=True,
+    control_freq=50,
+    render_camera=args.camera,
+    camera_names=args.camera,
+    camera_heights=args.height,
+    camera_widths=args.width,
+    render_gpu_device_id=0,
+    horizon=args.horizon,
+    initialization_noise=None
+)
+env = suite.make(
+    args.environment,
+    args.robots,
+    controller_configs=controller_config,
+    has_renderer=False,
+    has_offscreen_renderer=False,
     use_camera_obs=False,
     control_freq=50,
-    horizon = 200,
+    render_camera=args.camera,
+    render_gpu_device_id=0,
+    horizon=args.horizon,
 )
 env = GymWrapper(env)
 env = TimeFeatureWrapper(env)
 
-model = SAC.load("./models/"+modelname, env = env)
-done = False
-n = 1
+writer = imageio.get_writer(args.workdir+"/videos/"+args.video_name+".mp4", fps=args.fps)
+
+policy_kwargs = {'net_arch' : [512, 512, 512, 512], 
+                'n_critics' : 4,
+                }
+if args.model_name == "DDPG":
+    model = DDPG(policy="MlpPolicy", env=env, policy_kwargs=policy_kwargs)
+elif args.model_name == "SAC":
+    model = SAC(policy="MlpPolicy", env=env, policy_kwargs=policy_kwargs)
+elif args.model_name == "PPO":
+    model = PPO(policy="MlpPolicy", env=env, policy_kwargs=policy_kwargs)
+model.policy.load_state_dict(torch.load(args.model_save))
+
 obs = env.reset()
-while not done:
+for n in tqdm(range(args.horizon)):
     action, _states = model.predict(obs, deterministic = True)
     obs, reward, done, _ = env.step(action)
-    print("🔱", "{:03}".format(n), ["{:.4f}".format(x) for x in action], "{:.5f}".format(reward))
-    env.unwrapped.render()
-    n += 1
+    obs_recoder, _, _, _ = env_recoder.step(action)
+    # print("🔱", "{:03}".format(n), ["{:.4f}".format(x) for x in action], "{:.5f}".format(reward))
+    # env.unwrapped.render()
+    frame = obs_recoder[args.camera+"_image"]
+    frame = np.flip(frame, axis=0)
+    writer.append_data(frame)
 env.close()
-
-# print("")
-# print("🌼 [obs]")
-# print("type(obs): ", type(obs))
-# print("dir(obs): ", dir(obs))
-# print("obs.shape: ", obs.shape)
-# print("obs: ", obs)
-# print("")
-
-# print("🎃 robosuite.env")
-# print("type(env): ", type(env))
-# print("dir(env): ", dir(env))
-# print("env: ", env)
-# obs = env.reset()
-# print("🌼 [obs] robosuite.env.reset()")
-# print("type(obs): ", type(obs))
-# print("dir(obs): ", dir(obs))
-# for key,value in obs.items():
-#     print(f"Key: {key}, Value.shape: {value.shape}")
-# print("obs: ", obs)
-# print("")
-
-# env = GymWrapper(env)
-# print("🎃 GymWrapper(env)")
-# print("type(env): ", type(env))
-# print("dir(env): ", dir(env))
-# print("env: ", env)
-# obs = env.reset()
-# print("🌼 [obs] GymWrapper(env).reset()")
-# print("type(obs): ", type(obs))
-# print("dir(obs): ", dir(obs))
-# print("obs.shape: ", obs.shape)
-# print("obs: ", obs)
-# print("")
-
-# env = TimeFeatureWrapper(env)
-# print("🎃 TimeFeatureWrapper(env)")
-# print("type(env): ", type(env))
-# print("dir(env): ", dir(env))
-# print("env: ", env)
-# obs = env.reset()
-# print("🌼 [obs] TimeFeatureWrapper(env).reset()")
-# print("type(obs): ", type(obs))
-# print("dir(obs): ", dir(obs))
-# print("obs.shape: ", obs.shape)
-# print("obs: ", obs)
-# print("")
+env_recoder.close()
+writer.close()
+print("🔱 FINISH")

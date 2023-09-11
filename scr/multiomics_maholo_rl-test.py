@@ -76,14 +76,15 @@ elif args.model_name == "SAC":
     model = SAC(policy="MlpPolicy", env=env, policy_kwargs=policy_kwargs)
 elif args.model_name == "PPO":
     model = PPO(policy="MlpPolicy", env=env, policy_kwargs=policy_kwargs)
-model.policy.actor.load_state_dict(torch.load(args.model_save))
+model.policy.load_state_dict(torch.load(args.model_save))
 
 obs = env.reset()
 for n in tqdm(range(args.horizon)):
     action, _states = model.predict(obs, deterministic = True)
     obs, reward, done, _ = env.step(action)
     obs_recoder, _, _, _ = env_recoder.step(action)
-    # print("🔱", "{:03}".format(n), ["{:.4f}".format(x) for x in action], "{:.5f}".format(reward))
+    # print("🔱", "{:03}".format(n), ["{:.4f}".format(x) for x in action], "{:.5f}".format(reward), flush=True)
+    print("🔱", "{:03}".format(n), "{:.5f}".format(reward), flush=True)
     # env.unwrapped.render()
     frame = obs_recoder[args.camera+"_image"]
     frame = np.flip(frame, axis=0)

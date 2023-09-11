@@ -77,7 +77,7 @@ elif args.model_name == "PPO":
 if args.model_load is not None:
     if os.path.exists(args.model_load):
         try:
-            model.policy.load_state_dict(torch.load(args.model_load))
+            model.policy.actor.load_state_dict(torch.load(args.model_load))
             print(f"Model weights loaded from {args.model_load}")
         except Exception as e:
             print(f"Error loading model weights: {e}")
