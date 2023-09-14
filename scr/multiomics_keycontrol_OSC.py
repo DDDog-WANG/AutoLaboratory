@@ -10,7 +10,7 @@ from robosuite.utils.transform_utils import quat2mat, mat2euler
 from pynput import keyboard
 from robosuite.wrappers.gym_wrapper import GymWrapper
 from sb3_contrib.common.wrappers import TimeFeatureWrapper
-
+np.set_printoptions(precision=5, suppress=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -38,10 +38,10 @@ env = suite.make(
     camera_heights=args.height,
     camera_widths=args.width,
     horizon=args.horizon,
-    initialization_noise=None
+    # initialization_noise=None
 )
-env = GymWrapper(env) 
-env = TimeFeatureWrapper(env)
+# env = GymWrapper(env) 
+# env = TimeFeatureWrapper(env)
 
 
 delta = 0.6
@@ -120,10 +120,8 @@ listener = keyboard.Listener(on_press=on_press, on_release=on_release)
 listener.start()
 
 
-
 # joint_names = env.sim.model.joint_names
 # joint_ids = [env.sim.model.joint_name2id(name) for name in joint_names] 
-
 
 action = np.zeros(14)
 action_seq = []
@@ -134,12 +132,7 @@ reward_seq = []
 obs = env.reset()
 
 print(f"👑 ROUND {args.episode}")
-eef_pos = env.sim.data.get_body_xpos("gripper0_left_eef")
-eef_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("gripper0_left_eef")))
-print(f"left_eef : {eef_pos}, {eef_euler}")
-eef_pos = env.sim.data.get_body_xpos("gripper0_right_eef")
-eef_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("gripper0_right_eef")))
-print(f"right_eef: {eef_pos}, {eef_euler}")
+print("✤✤ Object ✤✤")
 pipette_pos = env.sim.data.get_body_xpos("P1000_withtip004_main")
 pipette_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("P1000_withtip004_main")))
 print(f"pipette  : {pipette_pos}, {pipette_euler}")
@@ -147,41 +140,60 @@ tube_pos = env.sim.data.get_body_xpos("tube1_5ml008_main")
 tube_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("tube1_5ml008_main")))
 print(f"tube     : {tube_pos}, {tube_euler}")
 
+print("✤✤ Robot ✤✤")
 joint_positions = env.robots[0].sim.data.qpos
 joint_positions = np.concatenate((joint_positions[:9],joint_positions[10:18]))
+print("body     :",np.array([joint_positions[0]]))
+print("left_arm :",joint_positions[1:9])
+print("right_arm:",joint_positions[10:18])
+
+eef_pos = env.sim.data.get_body_xpos("gripper0_left_eef")
+eef_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("gripper0_left_eef")))
+print(f"left_eef : {eef_pos}, {eef_euler}")
+eef_pos = env.sim.data.get_body_xpos("gripper0_right_eef")
+eef_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("gripper0_right_eef")))
+print(f"right_eef: {eef_pos}, {eef_euler}")
 time.sleep(1)
 
-for n in tqdm(range(args.horizon)):
+for n in range(args.horizon):
 
     obs_seq.append(obs)
     action_seq.append(action.copy())
 
     obs, reward, done, _ = env.step(action)
     reward_seq.append(reward)
+    print("🔱", "{:03}".format(n), "{:.5f}".format(reward), flush=True)
 
     pre_joint_positions = joint_positions
     joint_positions = env.robots[0].sim.data.qpos
+    # print("body     :",np.array([joint_positions[0]]))
+    # print("left_arm :",joint_positions[1:9])
+    # print("right_arm:",joint_positions[10:18])
     joint_positions = np.concatenate((joint_positions[:9],joint_positions[10:18]))
     delta_joint_positions = joint_positions - pre_joint_positions
     action_seq_joint.append(delta_joint_positions)
 
-    env.unwrapped.render()
+    env.render()
+
 env.close()
 
-action_seq = np.array(action_seq)
-print("action_seq.shape: ",action_seq.shape)
-np.save("./collectdata/action_seq_OSC_"+str(args.episode)+".npy", action_seq)
-action_seq_joint = np.array(action_seq_joint)
-print("action_seq_joint.shape: ",action_seq_joint.shape)
-np.save("./collectdata/action_seq_joint_"+str(args.episode)+".npy", action_seq_joint)
 
-obs_seq = np.array(obs_seq)
-print("obs_seq.shape: ",obs_seq.shape)
-np.save("./collectdata/obs_seq_OSC_"+str(args.episode)+".npy", obs_seq)
 
-reward_seq = np.array(reward_seq)
-print("reward_seq.shape: ",reward_seq.shape)
-np.save("./collectdata/reward_seq_OSC_"+str(args.episode)+".npy", reward_seq)
+
+# action_seq = np.array(action_seq)
+# print("action_seq.shape: ",action_seq.shape)
+# np.save("./collectdata/action_seq_OSC_"+str(args.episode)+".npy", action_seq)
+# action_seq_joint = np.array(action_seq_joint)
+# print("action_seq_joint.shape: ",action_seq_joint.shape)
+# np.save("./collectdata/action_seq_joint_"+str(args.episode)+".npy", action_seq_joint)
+
+# obs_seq = np.array(obs_seq)
+# print("obs_seq.shape: ",obs_seq.shape)
+# np.save("./collectdata/obs_seq_OSC_"+str(args.episode)+".npy", obs_seq)
+
+# reward_seq = np.array(reward_seq)
+# print("reward_seq.shape: ",reward_seq.shape)
+# np.save("./collectdata/reward_seq_OSC_"+str(args.episode)+".npy", reward_seq)
 
 
 
