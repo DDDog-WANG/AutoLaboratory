@@ -1,7 +1,6 @@
-# 実験ロボットの動作学習のためのAI駆動デジタルツインの開発
+# Development of AI-Driven Digital Twins for Motion Control Learning in Laboratory Automation 
 
-# Development of AI-Driven Digital Twins for Motion Control Learning in 
- Laboratory Automation 
+## 実験ロボットの動作学習のためのAI駆動デジタルツインの開発
 
 ## Ⅰ. Abstract
 
