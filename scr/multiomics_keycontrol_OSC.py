@@ -38,7 +38,7 @@ env = suite.make(
     camera_heights=args.height,
     camera_widths=args.width,
     horizon=args.horizon,
-    # initialization_noise=None
+    initialization_noise=None
 )
 # env = GymWrapper(env) 
 # env = TimeFeatureWrapper(env)
