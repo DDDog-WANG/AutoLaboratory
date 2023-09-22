@@ -14,9 +14,9 @@ import torch
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--workdir", type=str)
-    parser.add_argument("--model_save", type=str)
     parser.add_argument("--model_load", type=str)
-    parser.add_argument("--log_save", type=str)
+    parser.add_argument("--model_name", type=str, default="DDPG")
+
     parser.add_argument("--environment", type=str, default="MaholoLaboratory")
     parser.add_argument("--robots", type=str, default="Maholo")
     parser.add_argument("--controller", type=str, default="JOINT_POSITION")
@@ -27,10 +27,7 @@ if __name__ == "__main__":
     parser.add_argument("--height", type=int, default=1536)
     parser.add_argument("--width", type=int, default=2560)
 
-    parser.add_argument("--model_name", type=str, default="DDPG")
-    parser.add_argument("--batch_size", type=int, default=4096)
-    parser.add_argument("--learning_rate", type=float, default=1e-3)
-    parser.add_argument("--episodes", type=int, default=100)
+
     args = parser.parse_args()
 
 controller_config = load_controller_config(default_controller=args.controller)
@@ -61,6 +58,7 @@ env = suite.make(
     render_camera=args.camera,
     render_gpu_device_id=0,
     horizon=args.horizon,
+    initialization_noise=None
 )
 env = GymWrapper(env)
 env = TimeFeatureWrapper(env)
@@ -76,7 +74,7 @@ elif args.model_name == "SAC":
     model = SAC(policy="MlpPolicy", env=env, policy_kwargs=policy_kwargs)
 elif args.model_name == "PPO":
     model = PPO(policy="MlpPolicy", env=env, policy_kwargs=policy_kwargs)
-model.policy.load_state_dict(torch.load(args.model_save))
+model.policy.load_state_dict(torch.load(args.model_load))
 
 obs = env.reset()
 for n in tqdm(range(args.horizon)):

@@ -2,7 +2,7 @@ import robosuite as suite
 from robosuite import load_controller_config
 from robosuite.wrappers.gym_wrapper import GymWrapper
 import numpy as np
-from stable_baselines3 import DDPG , SAC, PPO
+from stable_baselines3 import DDPG , SAC, PPO, HerReplayBuffer
 from stable_baselines3.common.buffers import ReplayBuffer
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from sb3_contrib.common.wrappers import TimeFeatureWrapper
@@ -16,11 +16,11 @@ if __name__ == "__main__":
     parser.add_argument("--model_save", type=str, default="my_model")
     parser.add_argument("--model_load", type=str, default=None)
     parser.add_argument("--log_save", type=str, default="./")
+
     parser.add_argument("--environment", type=str, default="MaholoLaboratory")
     parser.add_argument("--robots", type=str, default="Maholo")
     parser.add_argument("--controller", type=str, default="OSC_POSE")
     parser.add_argument("--camera", type=str, default="frontview")
-    parser.add_argument("--video_name", type=str, default="my_video")
     parser.add_argument("--fps", type=int, default=50)
     parser.add_argument("--horizon", type=int, default=1000)
     parser.add_argument("--height", type=int, default=1536)
@@ -57,6 +57,9 @@ total_timesteps = args.horizon * args.episodes
 policy_kwargs = {'net_arch' : [512, 512, 512, 512], 
                 'n_critics' : 4,
                 }
+rb_kwargs = {'online_sampling' : True,
+             'goal_selection_strategy' : 'future',
+             'n_sampled_goal' : 4}
 if args.controller == "JOINT_POSITION":
     n_actions = env.robots[0].action_dim
 elif args.controller == "OSC_POSE":
@@ -77,7 +80,7 @@ elif args.model_name == "PPO":
 if args.model_load is not None:
     if os.path.exists(args.model_load):
         try:
-            model.policy.actor.load_state_dict(torch.load(args.model_load))
+            model.policy.load_state_dict(torch.load(args.model_load))
             print(f"Model weights loaded from {args.model_load}")
         except Exception as e:
             print(f"Error loading model weights: {e}")
