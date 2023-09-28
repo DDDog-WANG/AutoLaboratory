@@ -6,6 +6,7 @@ from stable_baselines3 import DDPG , SAC, PPO, HerReplayBuffer
 from stable_baselines3.common.buffers import ReplayBuffer
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from sb3_contrib.common.wrappers import TimeFeatureWrapper
+from stable_baselines3.common.evaluation import evaluate_policy
 import argparse, os
 import torch
 
@@ -57,9 +58,7 @@ total_timesteps = args.horizon * args.episodes
 policy_kwargs = {'net_arch' : [512, 512, 512, 512], 
                 'n_critics' : 4,
                 }
-rb_kwargs = {'online_sampling' : True,
-             'goal_selection_strategy' : 'future',
-             'n_sampled_goal' : 4}
+
 if args.controller == "JOINT_POSITION":
     n_actions = env.robots[0].action_dim
 elif args.controller == "OSC_POSE":
@@ -70,10 +69,10 @@ action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.2)
 
 if args.model_name == "DDPG":
     model = DDPG(policy="MlpPolicy", env=env, replay_buffer_class=ReplayBuffer, verbose=1, gamma=0.9, batch_size=batch_size, 
-                buffer_size=100000, learning_rate=learning_rate, action_noise=action_noise, policy_kwargs=policy_kwargs, tensorboard_log=args.log_save)
+                buffer_size=500000, learning_rate=learning_rate, action_noise=action_noise, policy_kwargs=policy_kwargs, tensorboard_log=args.log_save)
 elif args.model_name == "SAC":
     model = SAC(policy="MlpPolicy", env=env, replay_buffer_class=ReplayBuffer, verbose=1, gamma = 0.9, batch_size=batch_size, 
-                buffer_size=100000, learning_rate=learning_rate, action_noise=action_noise, policy_kwargs=policy_kwargs, tensorboard_log=args.log_save)
+                buffer_size=500000, learning_rate=learning_rate, action_noise=action_noise, policy_kwargs=policy_kwargs, tensorboard_log=args.log_save)
 elif args.model_name == "PPO":
     model = PPO(policy="MlpPolicy", env=env, verbose=1, gamma=0.9, batch_size=batch_size, tensorboard_log=args.log_save)
 
@@ -87,6 +86,12 @@ if args.model_load is not None:
     else:
         print(f"Model weights file {args.model_load} does not exist.")
 
+results = evaluate_policy(model, env, n_eval_episodes=10, deterministic=False)
+print(f"\nSTART evaluate_policy: {results}\n", flush=True)
 model.learn(total_timesteps=total_timesteps)
 torch.save(model.policy.state_dict(), args.model_save)
 print("Saved to ", args.model_save, flush=True)
+results = evaluate_policy(model, env, n_eval_episodes=10, deterministic=False)
+print(f"\nEND evaluate_policy: {results}\n", flush=True)
+
+

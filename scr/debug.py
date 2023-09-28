@@ -15,10 +15,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--environment", type=str, default="MaholoLaboratory")
     parser.add_argument("--robots", type=str, default="Maholo")
-    parser.add_argument("--controller", type=str, default="OSC_POSE")
+    parser.add_argument("--controller", type=str, default="JOINT_POSITION")
     parser.add_argument("--camera", type=str, default="frontview")
     parser.add_argument("--video_name", type=str, default="my_video")
-    parser.add_argument("--horizon", type=int, default=1000)
+    parser.add_argument("--horizon", type=int, default=1)
     parser.add_argument("--episode", type=int, default=1)
     parser.add_argument("--height", type=int, default=1536)
     parser.add_argument("--width", type=int, default=2560)
@@ -30,7 +30,7 @@ env = suite.make(
     args.environment,
     args.robots,
     controller_configs=controller_config,
-    has_renderer=True,
+    has_renderer=False,
     has_offscreen_renderer=True,
     use_camera_obs=False,
     control_freq=50,
@@ -41,12 +41,12 @@ env = suite.make(
     horizon=args.horizon,
     initialization_noise=None
 )
-env = GymWrapper(env) 
-env = TimeFeatureWrapper(env)
+# env = GymWrapper(env) 
+# env = TimeFeatureWrapper(env)
 
 # for key in env.robots[0].gripper:
 #     print(f"{key} hand: {env.robots[0].gripper[key]}")
-action_seq = np.load("./collectdata/action_OSC/action_seq_OSC.npy")
+# action_seq = np.load("./collectdata/action_OSC/action_seq_OSC.npy")
 action_seq_joint = []
 
 
@@ -84,8 +84,8 @@ for ep in range(args.episode):
 
     for n in range(args.horizon):
 
-        # action = np.random.uniform(-1, 1, size=env.robots[0].dof)
-        action = action_seq[n]
+        action = np.random.uniform(-1, 1, size=env.robots[0].dof)
+        # action = action_seq[n]
         # action = np.array([action[0]/0.0034, 
         #                   action[1]/0.0033, action[2]/0.0032, action[3]/0.0032, action[4]/0.0033, action[5]/0.0031, action[6]/0.0029, action[7]/0.0029, action[8]/0.0001, 
         #                   action[9]/0.0032, action[10]/0.0031, action[11]/0.0032, action[12]/0.0033, action[13]/0.0029, action[14]/0.0027, action[15]/0.0026, action[16]/0.0001])
@@ -109,12 +109,12 @@ for ep in range(args.episode):
         # cube_euler = mat2euler(quat2mat(cube_quat))
         # print("cube: ",cube_pos, cube_euler)
 
-        env.unwrapped.render()
-env.unwrapped.close()
+        # env.unwrapped.render()
+env.close()
 
 for key,value in obs.items():
-    print(f"🟡 Key: {key}, Value.shape: {value.shape}")
-    print(type(value))
+    print(f"Key: {key}, Value.shape: {value.shape}")
+    # print(type(value))
 
 # # SAVE INITIAL JOINT POS
 # initial_joint = {}

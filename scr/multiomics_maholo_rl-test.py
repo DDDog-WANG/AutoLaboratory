@@ -6,6 +6,7 @@ from stable_baselines3 import DDPG , SAC, PPO
 from stable_baselines3.common.buffers import ReplayBuffer
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from sb3_contrib.common.wrappers import TimeFeatureWrapper
+from robosuite.utils.transform_utils import quat2mat, mat2euler
 import argparse
 import imageio
 from tqdm import tqdm
@@ -77,17 +78,22 @@ elif args.model_name == "PPO":
 model.policy.load_state_dict(torch.load(args.model_load))
 
 obs = env.reset()
-for n in tqdm(range(args.horizon)):
+rewards = 0
+
+for n in range(args.horizon):
     action, _states = model.predict(obs, deterministic = True)
     obs, reward, done, _ = env.step(action)
-    obs_recoder, _, _, _ = env_recoder.step(action)
+    rewards += reward
+    obs_recoder, reward_recorder, _, _ = env_recoder.step(action)
     # print("🔱", "{:03}".format(n), ["{:.4f}".format(x) for x in action], "{:.5f}".format(reward), flush=True)
     print("🔱", "{:03}".format(n), "{:.5f}".format(reward), flush=True)
     # env.unwrapped.render()
     frame = obs_recoder[args.camera+"_image"]
     frame = np.flip(frame, axis=0)
     writer.append_data(frame)
+    if env_recoder._check_success(): break
+
 env.close()
 env_recoder.close()
 writer.close()
-print("🔱 FINISH")
+print(f"🔱 FINISH!! Avg_rewards/n : {rewards/n}/n")
