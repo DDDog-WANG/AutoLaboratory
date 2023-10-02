@@ -18,7 +18,7 @@ if __name__ == "__main__":
     parser.add_argument("--controller", type=str, default="JOINT_POSITION")
     parser.add_argument("--camera", type=str, default="frontview")
     parser.add_argument("--video_name", type=str, default="my_video")
-    parser.add_argument("--horizon", type=int, default=1)
+    parser.add_argument("--horizon", type=int, default=10)
     parser.add_argument("--episode", type=int, default=1)
     parser.add_argument("--height", type=int, default=1536)
     parser.add_argument("--width", type=int, default=2560)
@@ -60,10 +60,10 @@ for ep in range(args.episode):
     print("✤✤ Object ✤✤")
     pipette_pos = env.sim.data.get_body_xpos("P1000_withtip004_main")
     pipette_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("P1000_withtip004_main")))
-    print(f"pipette  : {pipette_pos}, {pipette_euler}")
+    print(f'pipette  : {pipette_pos}, {env.sim.data.get_body_xquat("P1000_withtip004_main")}')
     tube_pos = env.sim.data.get_body_xpos("tube1_5ml008_main")
     tube_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("tube1_5ml008_main")))
-    print(f"tube     : {tube_pos}, {tube_euler}")
+    print(f'tube     : {tube_pos}, {env.sim.data.get_body_xquat("tube1_5ml008_main")}')
 
     print("✤✤ Robot ✤✤")
     joint_positions = env.robots[0].sim.data.qpos
@@ -74,13 +74,13 @@ for ep in range(args.episode):
 
     eef_pos = env.sim.data.get_body_xpos("gripper0_left_eef")
     eef_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("gripper0_left_eef")))
-    print(f"left_eef : {eef_pos}, {eef_euler}")
+    print(f'left_eef : {eef_pos}, {env.sim.data.get_body_xquat("gripper0_left_eef")}')
     eef_pos = env.sim.data.get_body_xpos("gripper0_right_eef")
     eef_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("gripper0_right_eef")))
-    print(f"right_eef: {eef_pos}, {eef_euler}")
+    print(f'right_eef: {eef_pos}, {env.sim.data.get_body_xquat("gripper0_right_eef")}')
 
-    print("✣✣✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢")
-    print("✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤")
+    print("✣✣✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢")
+    print("✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤")
 
     for n in range(args.horizon):
 
@@ -95,7 +95,9 @@ for ep in range(args.episode):
 
         obs, reward, done, _ = env.step(action)
 
-        print("🔱", "{:03}".format(n), "{:.5f}".format(reward), flush=True)
+        # print("🔱", "{:03}".format(n), "{:.5f}".format(reward), flush=True)
+        print(obs["pipette004_pos"], obs["pipette004_quat"], flush=True)
+        print(obs["gripper1_to_pipette004"], obs["gripper1_quat_pipette004"], flush=True)
         # joint_positions = env.robots[0].sim.data.qpos
         # joint_positions = np.concatenate((joint_positions[:9],joint_positions[10:18]))
         # # joint_positions = joint_positions[:8]
@@ -114,7 +116,7 @@ env.close()
 
 for key,value in obs.items():
     print(f"Key: {key}, Value.shape: {value.shape}")
-    # print(type(value))
+    print(type(value))
 
 # # SAVE INITIAL JOINT POS
 # initial_joint = {}

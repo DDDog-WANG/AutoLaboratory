@@ -2,11 +2,11 @@ from math import pi, degrees
 import argparse
 import numpy as np
 from tqdm import tqdm
-import json, time
+import json, time, math
 from copy import deepcopy
 import robosuite as suite
 from robosuite import load_controller_config
-from robosuite.utils.transform_utils import quat2mat, mat2euler
+from robosuite.utils.transform_utils import quat2mat, mat2euler, quat_distance
 from pynput import keyboard
 from robosuite.wrappers.gym_wrapper import GymWrapper
 from sb3_contrib.common.wrappers import TimeFeatureWrapper
@@ -44,7 +44,7 @@ env = suite.make(
 # env = TimeFeatureWrapper(env)
 
 
-delta = 0.6
+delta = 0.1
 arm_delta = 7
 def on_press(key):
     global action
@@ -153,7 +153,8 @@ print(f"left_eef : {eef_pos}, {eef_euler}")
 eef_pos = env.sim.data.get_body_xpos("gripper0_right_eef")
 eef_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("gripper0_right_eef")))
 print(f"right_eef: {eef_pos}, {eef_euler}")
-time.sleep(1)
+print("✣✣✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢")
+print("✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✢✢✤✤")
 
 for n in range(args.horizon):
 
@@ -163,6 +164,9 @@ for n in range(args.horizon):
     obs, reward, done, _ = env.step(action)
     reward_seq.append(reward)
     print("🔱", "{:03}".format(n), "{:.5f}".format(reward), flush=True)
+    # print(obs["pipette004_pos"], mat2euler(quat2mat(obs["pipette004_quat"])), flush=True)
+    # print(obs["robot0_left_eef_pos"], mat2euler(quat2mat(obs["robot0_left_eef_quat"])), flush=True)
+    print(obs["gripper1_to_pipette004"], mat2euler(quat2mat(obs["gripper1_pipette004_quat"])), obs["gripper1_pipette004_eular"], flush=True)
 
     pre_joint_positions = joint_positions
     joint_positions = env.robots[0].sim.data.qpos
@@ -177,8 +181,9 @@ for n in range(args.horizon):
 
 env.close()
 
-
-
+# for key,value in obs.items():
+#     print(f"Key: {key}, Value.shape: {value.shape}")
+#     print(value)
 
 # action_seq = np.array(action_seq)
 # print("action_seq.shape: ",action_seq.shape)
