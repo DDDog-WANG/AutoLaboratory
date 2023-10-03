@@ -30,7 +30,8 @@ if __name__ == "__main__":
 
     parser.add_argument("--model_name", type=str, default="DDPG")
     parser.add_argument("--batch_size", type=int, default=4096)
-    parser.add_argument("--learning_rate", type=float, default=1e-3)
+    parser.add_argument("--initial_lr", type=float, default=1e-3)
+    parser.add_argument("--final_lr", type=float, default=1e-5)
     parser.add_argument("--episodes", type=int, default=100)
     args = parser.parse_args()
 
@@ -54,9 +55,7 @@ env = TimeFeatureWrapper(env)
 print(f"\nTimeFeature GYM Wrapper obs.shape: {env.reset().shape}\n", flush=True)
 
 batch_size = args.batch_size
-initial_learning_rate = args.learning_rate
-final_learning_rate = 0.000001
-lr_schedule = lambda fraction: initial_learning_rate + fraction * (final_learning_rate - initial_learning_rate)
+lr_schedule = lambda fraction: args.initial_lr + fraction * (args.final_lr - args.initial_lr)
 total_timesteps = args.horizon * args.episodes
 policy_kwargs = {'net_arch' : [512, 512, 512, 512], 
                 'n_critics' : 4,
@@ -94,8 +93,8 @@ save_interval = 500
 episodes_per_iter = args.episodes // (args.episodes // save_interval)
 
 for i in range(args.episodes // save_interval):
-    print("✣✣✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢")
-    print("✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✢✢✤")
+    print("✣✣✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✣✣✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢")
+    print("✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤")
     print(f"👑 ROUND {i * save_interval} ", datetime.datetime.now(), flush=True)
     # Evaluate model
     results = evaluate_policy(model, env, n_eval_episodes=5, deterministic=False)
