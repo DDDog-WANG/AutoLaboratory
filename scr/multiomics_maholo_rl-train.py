@@ -9,6 +9,7 @@ from sb3_contrib.common.wrappers import TimeFeatureWrapper
 from stable_baselines3.common.evaluation import evaluate_policy
 import argparse, os
 import torch
+import datetime
 
 
 if __name__ == "__main__":
@@ -53,7 +54,9 @@ env = TimeFeatureWrapper(env)
 print(f"\nTimeFeature GYM Wrapper obs.shape: {env.reset().shape}\n", flush=True)
 
 batch_size = args.batch_size
-learning_rate = args.learning_rate
+initial_learning_rate = args.learning_rate
+final_learning_rate = 0.000001
+lr_schedule = lambda fraction: initial_learning_rate + fraction * (final_learning_rate - initial_learning_rate)
 total_timesteps = args.horizon * args.episodes
 policy_kwargs = {'net_arch' : [512, 512, 512, 512], 
                 'n_critics' : 4,
@@ -69,12 +72,12 @@ action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.2)
 
 if args.model_name == "DDPG":
     model = DDPG(policy="MlpPolicy", env=env, replay_buffer_class=ReplayBuffer, verbose=1, gamma=0.9, batch_size=batch_size, 
-                buffer_size=500000, learning_rate=learning_rate, action_noise=action_noise, policy_kwargs=policy_kwargs, tensorboard_log=args.log_save)
+                buffer_size=500000, learning_rate=lr_schedule, action_noise=action_noise, policy_kwargs=policy_kwargs, tensorboard_log=args.log_save)
 elif args.model_name == "SAC":
     model = SAC(policy="MlpPolicy", env=env, replay_buffer_class=ReplayBuffer, verbose=1, gamma = 0.9, batch_size=batch_size, 
-                buffer_size=500000, learning_rate=learning_rate, action_noise=action_noise, policy_kwargs=policy_kwargs, tensorboard_log=args.log_save)
+                buffer_size=500000, learning_rate=lr_schedule, action_noise=action_noise, policy_kwargs=policy_kwargs, tensorboard_log=args.log_save)
 elif args.model_name == "PPO":
-    model = PPO(policy="MlpPolicy", env=env, verbose=1, gamma=0.9, batch_size=batch_size, tensorboard_log=args.log_save)
+    model = PPO(policy="MlpPolicy", env=env, learning_rate=lr_schedule, verbose=1, gamma=0.9, batch_size=batch_size, tensorboard_log=args.log_save)
 
 if args.model_load is not None:
     if os.path.exists(args.model_load):
@@ -86,12 +89,32 @@ if args.model_load is not None:
     else:
         print(f"Model weights file {args.model_load} does not exist.")
 
-results = evaluate_policy(model, env, n_eval_episodes=10, deterministic=False)
-print(f"\nSTART evaluate_policy: {results}\n", flush=True)
-model.learn(total_timesteps=total_timesteps)
-torch.save(model.policy.state_dict(), args.model_save)
-print("Saved to ", args.model_save, flush=True)
-results = evaluate_policy(model, env, n_eval_episodes=10, deterministic=False)
-print(f"\nEND evaluate_policy: {results}\n", flush=True)
+
+save_interval = 500
+episodes_per_iter = args.episodes // (args.episodes // save_interval)
+
+for i in range(args.episodes // save_interval):
+    print("✣✣✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢")
+    print("✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✢✢✤")
+    print(f"👑 ROUND {i * save_interval} ", datetime.datetime.now(), flush=True)
+    # Evaluate model
+    results = evaluate_policy(model, env, n_eval_episodes=5, deterministic=False)
+    print(f"\nSTART evaluate_policy: {results}\n", flush=True)
+    # Train model
+    total_timesteps_per_iter = args.horizon * episodes_per_iter
+    model.learn(total_timesteps=total_timesteps_per_iter)
+    # Evaluate model
+    results = evaluate_policy(model, env, n_eval_episodes=5, deterministic=False)
+    print(f"\nEND evaluate_policy: {results}\n", flush=True)
+    # Save model
+    save_path = args.model_save+f'_{(i + 1) * save_interval}.pth'
+    torch.save(model.policy.state_dict(), save_path)
+    print(f"Saved to {save_path}\n", flush=True)
+
+# model.learn(total_timesteps=total_timesteps)
+# torch.save(model.policy.state_dict(), args.model_save)
+# print("Saved to ", args.model_save, flush=True)
+
+
 
 

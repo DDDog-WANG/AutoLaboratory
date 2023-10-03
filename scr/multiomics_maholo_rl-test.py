@@ -96,4 +96,4 @@ for n in range(args.horizon):
 env.close()
 env_recoder.close()
 writer.close()
-print(f"🔱 FINISH!! Avg_rewards/n : {rewards/n}/n")
+print(f"🔱 FINISH!! Avg_rewards/n : {rewards/n}/{n+1}\n")
