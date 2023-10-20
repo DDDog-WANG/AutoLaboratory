@@ -38,6 +38,9 @@ env = suite.make(
     camera_heights=args.height,
     camera_widths=args.width,
     horizon=args.horizon,
+    robot_initial_qpos = np.array([0.08975, 
+                                   0.13914,  0.00453,  0.05442, -0.11653,  0.01667, -0.00705,  0.10594,  
+                                   0.42625,  0.26695,  0.92676,  1.22509,  0.38182,  0.01312, -0.00972, ]),
     initialization_noise=None
 )
 # env = GymWrapper(env) 
@@ -164,26 +167,27 @@ for n in range(args.horizon):
     obs, reward, done, _ = env.step(action)
     reward_seq.append(reward)
     print("🔱", "{:03}".format(n), "{:.5f}".format(reward), flush=True)
-    # print(obs["pipette004_pos"], mat2euler(quat2mat(obs["pipette004_quat"])), flush=True)
-    # print(obs["robot0_left_eef_pos"], mat2euler(quat2mat(obs["robot0_left_eef_quat"])), flush=True)
-    print(obs["gripper1_to_pipette004"], mat2euler(quat2mat(obs["gripper1_pipette004_quat"])), obs["gripper1_pipette004_eular"], flush=True)
+    print(obs["pipette004_pos"], mat2euler(quat2mat(obs["pipette004_quat"])), flush=True)
+    print(obs["robot0_left_eef_pos"], mat2euler(quat2mat(obs["robot0_left_eef_quat"])), flush=True)
+    print(obs["g1_to_target_pos"], obs["g1_to_target_quat"], flush=True)
+    print(obs["g0_to_target_pos"], obs["g0_to_target_quat"], flush=True)
 
-    pre_joint_positions = joint_positions
-    joint_positions = env.robots[0].sim.data.qpos
+    # pre_joint_positions = joint_positions
+    # joint_positions = env.robots[0].sim.data.qpos
     # print("body     :",np.array([joint_positions[0]]))
     # print("left_arm :",joint_positions[1:9])
     # print("right_arm:",joint_positions[10:18])
-    joint_positions = np.concatenate((joint_positions[:9],joint_positions[10:18]))
-    delta_joint_positions = joint_positions - pre_joint_positions
-    action_seq_joint.append(delta_joint_positions)
+    # joint_positions = np.concatenate((joint_positions[:9],joint_positions[10:18]))
+    # delta_joint_positions = joint_positions - pre_joint_positions
+    # action_seq_joint.append(delta_joint_positions)
 
     env.render()
 
 env.close()
 
-# for key,value in obs.items():
-#     print(f"Key: {key}, Value.shape: {value.shape}")
-#     print(value)
+for key,value in obs.items():
+    print(f"Key: {key}, Value.shape: {value.shape}")
+    print(value)
 
 # action_seq = np.array(action_seq)
 # print("action_seq.shape: ",action_seq.shape)
