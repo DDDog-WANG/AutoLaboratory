@@ -2,13 +2,18 @@ import robosuite as suite
 from robosuite import load_controller_config
 from robosuite.wrappers.gym_wrapper import GymWrapper
 import numpy as np
-from stable_baselines3 import DDPG , SAC, PPO, HerReplayBuffer
+
+import torch
+from torch import nn
+from gymnasium import spaces
+from typing import Callable, Dict, List, Optional, Tuple, Type, Union
+from stable_baselines3 import DDPG , SAC, PPO
+from stable_baselines3.common.policies import ActorCriticPolicy
 from stable_baselines3.common.buffers import ReplayBuffer
-from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
+from stable_baselines3.common.noise import NormalActionNoise
 from sb3_contrib.common.wrappers import TimeFeatureWrapper
 from stable_baselines3.common.evaluation import evaluate_policy
 import argparse, os
-import torch
 import datetime
 
 
@@ -55,20 +60,106 @@ env = TimeFeatureWrapper(env)
 print(f"\nTimeFeature GYM Wrapper obs.shape: {env.reset().shape}\n", flush=True)
 
 batch_size = args.batch_size
-lr_schedule = lambda fraction: args.initial_lr + fraction * (args.final_lr - args.initial_lr)
-total_timesteps = args.horizon * args.episodes
-policy_kwargs = {'net_arch' : [512, 512, 512, 512], 
-                'n_critics' : 4,
-                }
+# 计算衰减率
+decay_rate = -np.log(args.final_lr / args.initial_lr)
+lr_schedule = lambda fraction: args.initial_lr * np.exp(-decay_rate * (1-fraction))
 
+total_timesteps = args.horizon * args.episodes
+# policy_kwargs = {'net_arch' : [512, 512, 512, 512, 256, 256, 128, 128], 
+#                 'n_critics' : 4,
+#                 }
+# policy_kwargs = {'net_arch' : [512, 512, 512, 512], 
+#                 'n_critics' : 4,
+#                 }
+policy_kwargs = {'net_arch' : [512, 512], 
+                'n_critics' : 2,
+                }
 if args.controller == "JOINT_POSITION":
     n_actions = env.robots[0].action_dim
 elif args.controller == "OSC_POSE":
     n_actions = 14
 print(f"n_actions: {n_actions}\n", flush=True)
 action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.2)
-# action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions), theta=0.1, sigma=0.2)
 
+class ResidualBlock(nn.Module):
+    def __init__(self, dim):
+        super(ResidualBlock, self).__init__()
+        self.block = nn.Sequential(
+            nn.Linear(dim, dim),
+            nn.ReLU(),
+            nn.Linear(dim, dim)
+        )
+    
+    def forward(self, x):
+        return x + self.block(x)
+    
+class CustomNetwork(nn.Module):
+    def __init__(
+        self,
+        feature_dim: int,
+        last_layer_dim_pi: int = 512,
+        last_layer_dim_vf: int = 512,
+        
+    ):
+        super().__init__()
+
+        # IMPORTANT:
+        # Save output dimensions, used to create the distributions
+        self.latent_dim_pi = last_layer_dim_pi
+        self.latent_dim_vf = last_layer_dim_vf
+
+        # Policy network
+        self.policy_net = nn.Sequential(
+            nn.Linear(feature_dim, last_layer_dim_pi),
+            nn.ReLU(),
+            ResidualBlock(last_layer_dim_pi),
+            nn.ReLU(),
+            ResidualBlock(last_layer_dim_pi),
+            nn.ReLU(),
+        )
+        # Value network
+        self.value_net = nn.Sequential(
+            nn.Linear(feature_dim, last_layer_dim_vf),
+            nn.ReLU(),
+            ResidualBlock(last_layer_dim_vf),
+            nn.ReLU(),
+            ResidualBlock(last_layer_dim_pi),
+            nn.ReLU(),
+        )
+
+    def forward(self, features: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        return self.forward_actor(features), self.forward_critic(features)
+
+    def forward_actor(self, features: torch.Tensor) -> torch.Tensor:
+        return self.policy_net(features)
+
+    def forward_critic(self, features: torch.Tensor) -> torch.Tensor:
+        return self.value_net(features)
+    
+class CustomActorCriticPolicy(ActorCriticPolicy):
+    def __init__(
+        self,
+        observation_space: spaces.Space,
+        action_space: spaces.Space,
+        lr_schedule: Callable[[float], float],
+        *args,
+        **kwargs,
+    ):
+        # Disable orthogonal initialization
+        kwargs["ortho_init"] = False
+        super().__init__(
+            observation_space,
+            action_space,
+            lr_schedule,
+            # Pass remaining arguments to base class
+            *args,
+            **kwargs,
+        )
+
+
+    def _build_mlp_extractor(self) -> None:
+        self.mlp_extractor = CustomNetwork(self.features_dim)
+        
 if args.model_name == "DDPG":
     model = DDPG(policy="MlpPolicy", env=env, replay_buffer_class=ReplayBuffer, verbose=1, gamma=0.9, batch_size=batch_size, 
                 buffer_size=500000, learning_rate=lr_schedule, action_noise=action_noise, policy_kwargs=policy_kwargs, tensorboard_log=args.log_save)
@@ -76,7 +167,7 @@ elif args.model_name == "SAC":
     model = SAC(policy="MlpPolicy", env=env, replay_buffer_class=ReplayBuffer, verbose=1, gamma = 0.9, batch_size=batch_size, 
                 buffer_size=500000, learning_rate=lr_schedule, action_noise=action_noise, policy_kwargs=policy_kwargs, tensorboard_log=args.log_save)
 elif args.model_name == "PPO":
-    model = PPO(policy="MlpPolicy", env=env, learning_rate=lr_schedule, verbose=1, gamma=0.9, batch_size=batch_size, tensorboard_log=args.log_save)
+    model = PPO(policy=CustomActorCriticPolicy, env=env, learning_rate=lr_schedule, verbose=1, gamma=0.9, batch_size=batch_size, tensorboard_log=args.log_save)
 
 if args.model_load is not None:
     if os.path.exists(args.model_load):
@@ -88,10 +179,9 @@ if args.model_load is not None:
     else:
         print(f"Model weights file {args.model_load} does not exist.")
 
-
-save_interval = 500
-episodes_per_iter = args.episodes // (args.episodes // save_interval)
-
+print("\nMODEL POLICY")
+print(model.policy, flush=True)
+save_interval = 1000
 for i in range(args.episodes // save_interval):
     print("✣✣✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✣✣✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢")
     print("✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤")
@@ -100,13 +190,13 @@ for i in range(args.episodes // save_interval):
     results = evaluate_policy(model, env, n_eval_episodes=5, deterministic=False)
     print(f"\nSTART evaluate_policy: {results}\n", flush=True)
     # Train model
-    total_timesteps_per_iter = args.horizon * episodes_per_iter
-    model.learn(total_timesteps=total_timesteps_per_iter)
+    total_timesteps_per_iter = args.horizon * save_interval
+    model.learn(total_timesteps=total_timesteps_per_iter, reset_num_timesteps=False)
     # Evaluate model
     results = evaluate_policy(model, env, n_eval_episodes=5, deterministic=False)
     print(f"\nEND evaluate_policy: {results}\n", flush=True)
     # Save model
-    save_path = args.model_save+f'_{(i + 1) * save_interval}.pth'
+    save_path = args.model_save+f'_small_{(i + 1) * save_interval}.pth'
     torch.save(model.policy.state_dict(), save_path)
     print(f"Saved to {save_path}\n", flush=True)
 
