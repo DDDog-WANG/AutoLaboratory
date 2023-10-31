@@ -167,16 +167,16 @@ for n in range(args.horizon):
     obs, reward, done, _ = env.step(action)
     reward_seq.append(reward)
     print("🔱", "{:03}".format(n), "{:.5f}".format(reward), flush=True)
-    print(obs["pipette004_pos"], mat2euler(quat2mat(obs["pipette004_quat"])), flush=True)
-    print(obs["robot0_left_eef_pos"], mat2euler(quat2mat(obs["robot0_left_eef_quat"])), flush=True)
-    print(obs["g1_to_target_pos"], obs["g1_to_target_quat"], flush=True)
-    print(obs["g0_to_target_pos"], obs["g0_to_target_quat"], flush=True)
+    # print(obs["pipette004_pos"], mat2euler(quat2mat(obs["pipette004_quat"])), obs["pipette004_quat"], flush=True)
+    # print(obs["robot0_left_eef_pos"], mat2euler(quat2mat(obs["robot0_left_eef_quat"])), obs["robot0_left_eef_quat"], flush=True)
+    print(np.linalg.norm(obs["g1_to_target_pos"]), obs["g1_to_target_quat"], obs["g1_to_target_pos"], flush=True)
+    # print(obs["g0_to_target_pos"], np.linalg.norm(obs["g0_to_target_pos"]),obs["g0_to_target_quat"], flush=True)
 
     # pre_joint_positions = joint_positions
     # joint_positions = env.robots[0].sim.data.qpos
-    # print("body     :",np.array([joint_positions[0]]))
-    # print("left_arm :",joint_positions[1:9])
-    # print("right_arm:",joint_positions[10:18])
+    # # print("body     :",np.array([joint_positions[0]]))
+    # # print("left_arm :",joint_positions[1:9])
+    # # print("right_arm:",joint_positions[10:18])
     # joint_positions = np.concatenate((joint_positions[:9],joint_positions[10:18]))
     # delta_joint_positions = joint_positions - pre_joint_positions
     # action_seq_joint.append(delta_joint_positions)
@@ -185,24 +185,24 @@ for n in range(args.horizon):
 
 env.close()
 
-for key,value in obs.items():
-    print(f"Key: {key}, Value.shape: {value.shape}")
-    print(value)
+# for key,value in obs.items():
+#     print(f"Key: {key}, Value.shape: {value.shape}")
+#     print(value)
 
 # action_seq = np.array(action_seq)
 # print("action_seq.shape: ",action_seq.shape)
-# np.save("./collectdata/action_seq_OSC_"+str(args.episode)+".npy", action_seq)
+# np.save("./collectdata/action_OSC/action_seq_OSC_"+str(args.episode)+".npy", action_seq)
 # action_seq_joint = np.array(action_seq_joint)
 # print("action_seq_joint.shape: ",action_seq_joint.shape)
-# np.save("./collectdata/action_seq_joint_"+str(args.episode)+".npy", action_seq_joint)
+# np.save("./collectdata/action_joint/action_seq_joint_"+str(args.episode)+".npy", action_seq_joint)
 
 # obs_seq = np.array(obs_seq)
 # print("obs_seq.shape: ",obs_seq.shape)
-# np.save("./collectdata/obs_seq_OSC_"+str(args.episode)+".npy", obs_seq)
+# np.save("./collectdata/obs/obs_seq_OSC_"+str(args.episode)+".npy", obs_seq)
 
 # reward_seq = np.array(reward_seq)
 # print("reward_seq.shape: ",reward_seq.shape)
-# np.save("./collectdata/reward_seq_OSC_"+str(args.episode)+".npy", reward_seq)
+# np.save("./collectdata/reward/reward_seq_OSC_"+str(args.episode)+".npy", reward_seq)
 
 
 
