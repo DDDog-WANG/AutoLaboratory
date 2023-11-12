@@ -7,14 +7,14 @@ import torch
 from torch import nn
 from gymnasium import spaces
 from typing import Callable, Dict, List, Optional, Tuple, Type, Union
-from stable_baselines3 import DDPG , SAC, PPO
+from stable_baselines3 import DDPG , SAC, PPO, HerReplayBuffer
 from stable_baselines3.common.policies import ActorCriticPolicy
 from stable_baselines3.common.buffers import ReplayBuffer
 from stable_baselines3.common.noise import NormalActionNoise
 from sb3_contrib.common.wrappers import TimeFeatureWrapper
 from stable_baselines3.common.evaluation import evaluate_policy
 import argparse, os
-import datetime
+import datetime, time
 
 
 if __name__ == "__main__":
@@ -33,7 +33,8 @@ if __name__ == "__main__":
     parser.add_argument("--height", type=int, default=1536)
     parser.add_argument("--width", type=int, default=2560)
 
-    parser.add_argument("--model_name", type=str, default="DDPG")
+    parser.add_argument("--model_name", type=str, default="SAC")
+    parser.add_argument("--policy", type=str, default="small")
     parser.add_argument("--batch_size", type=int, default=4096)
     parser.add_argument("--initial_lr", type=float, default=1e-3)
     parser.add_argument("--final_lr", type=float, default=1e-5)
@@ -57,7 +58,7 @@ for key,value in env.reset().items():
     print(f"Key: {key}, Value.shape: {value.shape}", flush=True)
 env = GymWrapper(env)
 env = TimeFeatureWrapper(env)
-print(f"\nTimeFeature GYM Wrapper obs.shape: {env.reset().shape}\n", flush=True)
+print(f"\nTimeFeature GYM Wrapper obs: {env.reset().shape}\n", flush=True)
 
 batch_size = args.batch_size
 # 计算衰减率
@@ -65,19 +66,23 @@ decay_rate = -np.log(args.final_lr / args.initial_lr)
 lr_schedule = lambda fraction: args.initial_lr * np.exp(-decay_rate * (1-fraction))
 
 total_timesteps = args.horizon * args.episodes
-# policy_kwargs = {'net_arch' : [512, 512, 512, 512, 256, 256, 128, 128], 
-#                 'n_critics' : 4,
-#                 }
-# policy_kwargs = {'net_arch' : [512, 512, 512, 512], 
-#                 'n_critics' : 4,
-#                 }
-policy_kwargs = {'net_arch' : [512, 512], 
-                'n_critics' : 2,
-                }
-if args.controller == "JOINT_POSITION":
-    n_actions = env.robots[0].action_dim
-elif args.controller == "OSC_POSE":
+if args.policy == "large":
+    policy_kwargs = {'net_arch' : [512, 512, 512, 512, 256, 256, 128, 128], 
+                    'n_critics' : 4,
+                    }
+elif args.policy == "middle":
+    policy_kwargs = {'net_arch' : [512, 512, 512, 512], 
+                    'n_critics' : 4,
+                    }
+elif args.policy == "small":
+    policy_kwargs = {'net_arch' : [512, 512], 
+                    'n_critics' : 2,
+                    }
+    
+if args.controller == "OSC_POSE":
     n_actions = 14
+else:
+    n_actions = env.robots[0].action_dim
 print(f"n_actions: {n_actions}\n", flush=True)
 action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.2)
 
@@ -155,17 +160,16 @@ class CustomActorCriticPolicy(ActorCriticPolicy):
             *args,
             **kwargs,
         )
-
-
     def _build_mlp_extractor(self) -> None:
         self.mlp_extractor = CustomNetwork(self.features_dim)
-        
+
+goal_selection_strategy = "future"   
 if args.model_name == "DDPG":
-    model = DDPG(policy="MlpPolicy", env=env, replay_buffer_class=ReplayBuffer, verbose=1, gamma=0.9, batch_size=batch_size, 
-                buffer_size=500000, learning_rate=lr_schedule, action_noise=action_noise, policy_kwargs=policy_kwargs, tensorboard_log=args.log_save)
+    model = DDPG(policy="MlpPolicy", policy_kwargs=policy_kwargs, env=env, verbose=1, gamma=0.9, batch_size=batch_size, action_noise=action_noise, 
+                 replay_buffer_class=ReplayBuffer, learning_rate=lr_schedule, tensorboard_log=args.log_save)
 elif args.model_name == "SAC":
-    model = SAC(policy="MlpPolicy", env=env, replay_buffer_class=ReplayBuffer, verbose=1, gamma = 0.9, batch_size=batch_size, 
-                buffer_size=500000, learning_rate=lr_schedule, action_noise=action_noise, policy_kwargs=policy_kwargs, tensorboard_log=args.log_save)
+    model = SAC(policy="MlpPolicy", policy_kwargs=policy_kwargs, env=env, verbose=1, gamma = 0.9, batch_size=batch_size, action_noise=action_noise, 
+                replay_buffer_class=ReplayBuffer, learning_rate=lr_schedule, tensorboard_log=args.log_save)
 elif args.model_name == "PPO":
     model = PPO(policy=CustomActorCriticPolicy, env=env, learning_rate=lr_schedule, verbose=1, gamma=0.9, batch_size=batch_size, tensorboard_log=args.log_save)
 
@@ -185,6 +189,7 @@ save_interval = 1000
 for i in range(args.episodes // save_interval):
     print("✣✣✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✣✣✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢")
     print("✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤")
+    start_time = time.time()
     print(f"👑 ROUND {i * save_interval} ", datetime.datetime.now(), flush=True)
     # Evaluate model
     results = evaluate_policy(model, env, n_eval_episodes=5, deterministic=False)
@@ -196,9 +201,16 @@ for i in range(args.episodes // save_interval):
     results = evaluate_policy(model, env, n_eval_episodes=5, deterministic=False)
     print(f"\nEND evaluate_policy: {results}\n", flush=True)
     # Save model
-    save_path = args.model_save+f'_small_{(i + 1) * save_interval}.pth'
+    save_path = args.model_save+f'_{(i + 1)*save_interval}.pth'
     torch.save(model.policy.state_dict(), save_path)
     print(f"Saved to {save_path}\n", flush=True)
+    
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    hours, remainder = divmod(elapsed_time, 3600)
+    minutes, _ = divmod(remainder, 60)
+    print(f"Time elapsed: {int(hours)} hours and {int(minutes)} minutes")
+    print(f"ROUND {i * save_interval} FINISH", datetime.datetime.now(), flush=True)
 
 # model.learn(total_timesteps=total_timesteps)
 # torch.save(model.policy.state_dict(), args.model_save)

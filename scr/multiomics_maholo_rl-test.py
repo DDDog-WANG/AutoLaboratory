@@ -16,12 +16,14 @@ import argparse
 import imageio
 from tqdm import tqdm
 import torch
+np.set_printoptions(precision=5, suppress=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--workdir", type=str)
     parser.add_argument("--model_load", type=str)
-    parser.add_argument("--model_name", type=str, default="DDPG")
+    parser.add_argument("--model_name", type=str, default="SAC")
+    parser.add_argument("--policy", type=str, default="small")
 
     parser.add_argument("--environment", type=str, default="MaholoLaboratory")
     parser.add_argument("--robots", type=str, default="Maholo")
@@ -32,8 +34,6 @@ if __name__ == "__main__":
     parser.add_argument("--horizon", type=int, default=1000)
     parser.add_argument("--height", type=int, default=1536)
     parser.add_argument("--width", type=int, default=2560)
-
-
     args = parser.parse_args()
 
 controller_config = load_controller_config(default_controller=args.controller)
@@ -69,17 +69,20 @@ env = suite.make(
 env = GymWrapper(env)
 env = TimeFeatureWrapper(env)
 
-writer = imageio.get_writer(args.workdir+"/videos/"+args.video_name+".mp4", fps=args.fps)
+writer = imageio.get_writer(args.workdir+"/videos_tmp/"+args.video_name+".mp4", fps=args.fps)
 
-# policy_kwargs = {'net_arch' : [512, 512, 512, 512, 256, 256, 128, 128], 
-#                 'n_critics' : 4,
-#                 }
-# policy_kwargs = {'net_arch' : [512, 512, 512, 512], 
-#                 'n_critics' : 4,
-#                 }
-policy_kwargs = {'net_arch' : [512, 512], 
-                'n_critics' : 2,
-                }
+if args.policy == "large":
+    policy_kwargs = {'net_arch' : [512, 512, 512, 512, 256, 256, 128, 128], 
+                    'n_critics' : 4,
+                    }
+elif args.policy == "middle":
+    policy_kwargs = {'net_arch' : [512, 512, 512, 512], 
+                    'n_critics' : 4,
+                    }
+elif args.policy == "small":
+    policy_kwargs = {'net_arch' : [512, 512], 
+                    'n_critics' : 2,
+                    }
 
 class ResidualBlock(nn.Module):
     def __init__(self, dim):
@@ -155,8 +158,6 @@ class CustomActorCriticPolicy(ActorCriticPolicy):
             *args,
             **kwargs,
         )
-
-
     def _build_mlp_extractor(self) -> None:
         self.mlp_extractor = CustomNetwork(self.features_dim)
 
@@ -175,17 +176,20 @@ rewards = 0
 for n in range(args.horizon):
     action, _states = model.predict(obs, deterministic = True)
     obs, reward, done, _ = env.step(action)
-    rewards += reward
-    obs_recoder, reward_recorder, _, _ = env_recoder.step(action)
-    # print("🔱", "{:03}".format(n), ["{:.4f}".format(x) for x in action], "{:.5f}".format(reward), flush=True)
     print("🔱", "{:03}".format(n), "{:.5f}".format(reward), flush=True)
+    rewards += reward
+
+    obs_recoder, reward_recorder, _, _ = env_recoder.step(action)
     # env.unwrapped.render()
     frame = obs_recoder[args.camera+"_image"]
     frame = np.flip(frame, axis=0)
     writer.append_data(frame)
     if env_recoder._check_success(): break
+print(env.robots[0].sim.data.qpos)
 
 env.close()
 env_recoder.close()
 writer.close()
-print(f"🔱 FINISH!! Avg_rewards/n : {rewards/n}/{n+1}\n")
+print(f"🔱 FINISH")
+print(args.video_name)
+print(f"rewards: {rewards}, steps: {n+1}, avg_rewards: {rewards/(n+1)}\n")
