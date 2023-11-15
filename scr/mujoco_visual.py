@@ -35,7 +35,10 @@ world.merge(mujoco_robot)
 # object00 = objects.tube1_5mlObject(name="tube1_5ml")
 # world.merge(object00)
 
+# object01 = objects.P1000Pipette_withtipObject(name="P1000Pipette_withtip")
 object01 = objects.P1000Pipette_withtipObject(name="P1000Pipette_withtip")
+
+object01.set_base_xpos([1, 1, 1])
 world.merge(object01)
 # object01.set("pos", "0.5 0.5 0.5")
 # world.worldbody.append(object01)

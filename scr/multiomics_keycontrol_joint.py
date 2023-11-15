@@ -12,7 +12,7 @@ from sb3_contrib.common.wrappers import TimeFeatureWrapper
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--environment", type=str, default="MaholoLaboratory")
+    parser.add_argument("--environment", type=str, default="MaholoLaboratory_eefR_Move2Pipette")
     parser.add_argument("--robots", type=str, default="Maholo")
     parser.add_argument("--camera", type=str, default="frontview")
     parser.add_argument("--video_name", type=str, default="my_video")
@@ -21,10 +21,11 @@ if __name__ == "__main__":
     parser.add_argument("--width", type=int, default=2560)
     args = parser.parse_args()
 
-controller_config = load_controller_config(default_controller="JOINT_POSITION")
+controller_config = load_controller_config(default_controller="JOINT_VELOCITY")
 env = suite.make(
     args.environment,
     args.robots,
+    gripper_types=["PandaGripper"],
     controller_configs=controller_config,
     has_renderer=True,
     has_offscreen_renderer=True,
@@ -96,8 +97,10 @@ print(f"tube     : {tube_pos}, {tube_euler}")
 for n in range(args.horizon):
     obs_seq.append(obs)
     action_seq.append(action.copy())
-    print(action)
+
     obs, reward, done, _ = env.step(action)
+    # print("🔱", "{:03}".format(n), "{:.5f}".format(reward), flush=True)
+    print(action)
     reward_seq.append(reward)
 
     # pre_joint_positions = joint_positions
@@ -109,15 +112,15 @@ for n in range(args.horizon):
     env.unwrapped.render()
 env.close()
 
-action_seq = np.array(action_seq)
-print(action_seq.shape)
-np.save("./collectdata/action_seq_joint.npy", action_seq)
+# action_seq = np.array(action_seq)
+# print(action_seq.shape)
+# np.save("./collectdata/action_seq_joint.npy", action_seq)
 
-obs_seq = np.array(obs_seq)
-print(obs_seq.shape)
-np.save("./collectdata/obs_seq_joint.npy", obs_seq)
+# obs_seq = np.array(obs_seq)
+# print(obs_seq.shape)
+# np.save("./collectdata/obs_seq_joint.npy", obs_seq)
 
-reward_seq = np.array(reward_seq)
-print(reward_seq.shape)
-np.save("./collectdata/reward_seq_joint.npy", reward_seq)
+# reward_seq = np.array(reward_seq)
+# print(reward_seq.shape)
+# np.save("./collectdata/reward_seq_joint.npy", reward_seq)
 
