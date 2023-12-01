@@ -16,7 +16,7 @@ import argparse
 import imageio
 from tqdm import tqdm
 import torch
-np.set_printoptions(precision=5, suppress=True)
+# np.set_printoptions(precision=5, suppress=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -43,6 +43,7 @@ env_recoder = suite.make(
     controller_configs=controller_config,
     has_renderer=False,
     has_offscreen_renderer=True,
+    use_object_obs=True,
     use_camera_obs=True,
     control_freq=50,
     render_camera=args.camera,
@@ -59,6 +60,7 @@ env = suite.make(
     controller_configs=controller_config,
     has_renderer=False,
     has_offscreen_renderer=False,
+    use_object_obs=True,
     use_camera_obs=False,
     control_freq=50,
     render_camera=args.camera,
@@ -67,23 +69,10 @@ env = suite.make(
     initialization_noise=None
 )
 env = GymWrapper(env)
-env = TimeFeatureWrapper(env)
-
+# env = TimeFeatureWrapper(env)
 writer = imageio.get_writer(args.workdir+"/videos_tmp/"+args.video_name+".mp4", fps=args.fps)
 
-if args.policy == "large":
-    policy_kwargs = {'net_arch' : [512, 512, 512, 512, 256, 256, 128, 128], 
-                    'n_critics' : 4,
-                    }
-elif args.policy == "middle":
-    policy_kwargs = {'net_arch' : [512, 512, 512, 512], 
-                    'n_critics' : 4,
-                    }
-elif args.policy == "small":
-    policy_kwargs = {'net_arch' : [512, 512], 
-                    'n_critics' : 2,
-                    }
-
+# POLICY NETWORK
 class ResidualBlock(nn.Module):
     def __init__(self, dim):
         super(ResidualBlock, self).__init__()
@@ -94,8 +83,7 @@ class ResidualBlock(nn.Module):
         )
     
     def forward(self, x):
-        return x + self.block(x)
-    
+        return x + self.block(x) 
 class CustomNetwork(nn.Module):
     def __init__(
         self,
@@ -137,8 +125,7 @@ class CustomNetwork(nn.Module):
         return self.policy_net(features)
 
     def forward_critic(self, features: torch.Tensor) -> torch.Tensor:
-        return self.value_net(features)
-    
+        return self.value_net(features)   
 class CustomActorCriticPolicy(ActorCriticPolicy):
     def __init__(
         self,
@@ -158,10 +145,22 @@ class CustomActorCriticPolicy(ActorCriticPolicy):
             *args,
             **kwargs,
         )
-    def _build_mlp_extractor(self) -> None:
+    def _build_mlp_extractor(self):
         self.mlp_extractor = CustomNetwork(self.features_dim)
+if args.policy == "large":
+    policy_kwargs = {'net_arch' : [512, 512, 512, 512, 256, 256, 128, 128], 
+                    'n_critics' : 4,
+                    }
+elif args.policy == "middle":
+    policy_kwargs = {'net_arch' : [512, 512, 512, 512], 
+                    'n_critics' : 4,
+                    }
+elif args.policy == "small":
+    policy_kwargs = {'net_arch' : [512, 512], 
+                    'n_critics' : 2,
+                    }
 
-
+# ALGORITHM
 if args.model_name == "DDPG":
     model = DDPG(policy="MlpPolicy", env=env, policy_kwargs=policy_kwargs)
 elif args.model_name == "SAC":
@@ -171,21 +170,36 @@ elif args.model_name == "PPO":
 model.policy.load_state_dict(torch.load(args.model_load))
 
 obs = env.reset()
+def print_joint_positions(joint_positions):
+    print(f"👑 env.robots[0].sim.data.qpos.shape: {joint_positions.shape}")
+    print("body         :", joint_positions[0])
+    print("left_arm     :", joint_positions[1:8])
+    print("right_arm    :", joint_positions[10:17])
+    print("left_gripper :", joint_positions[8:10])
+    print("right_gripper:", joint_positions[17:19])
+    print("pipette004_pos :", joint_positions[19:22])
+    print("pipette004_quat:", joint_positions[22:26])
+    print("tube008_pos    :", joint_positions[26:29])
+    print("tube008_quat   :", joint_positions[29:33])
+print_joint_positions(env.robots[0].sim.data.qpos)
+print("📷 obs: ")
+print(obs)
 rewards = 0
-
 for n in range(args.horizon):
     action, _states = model.predict(obs, deterministic = True)
     obs, reward, done, _ = env.step(action)
-    print("🔱", "{:03}".format(n), "{:.5f}".format(reward), flush=True)
     rewards += reward
 
     obs_recoder, reward_recorder, _, _ = env_recoder.step(action)
+    print("🔱", "{:03}".format(n), "{:.5f}".format(reward), np.linalg.norm(obs_recoder["g1_to_target_pos"]), obs_recoder["g1_to_target_quat"], flush=True)
     # env.unwrapped.render()
     frame = obs_recoder[args.camera+"_image"]
     frame = np.flip(frame, axis=0)
     writer.append_data(frame)
     if env_recoder._check_success(): break
-print(env.robots[0].sim.data.qpos)
+print_joint_positions(env.robots[0].sim.data.qpos)
+print("📷 obs: ")
+print(obs)
 
 env.close()
 env_recoder.close()
@@ -193,3 +207,4 @@ writer.close()
 print(f"🔱 FINISH")
 print(args.video_name)
 print(f"rewards: {rewards}, steps: {n+1}, avg_rewards: {rewards/(n+1)}\n")
+

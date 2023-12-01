@@ -2,7 +2,7 @@ import robosuite as suite
 from robosuite import load_controller_config
 from robosuite.wrappers.gym_wrapper import GymWrapper
 import numpy as np
-
+import inspect
 import torch
 from torch import nn
 from gymnasium import spaces
@@ -38,7 +38,10 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=4096)
     parser.add_argument("--initial_lr", type=float, default=1e-3)
     parser.add_argument("--final_lr", type=float, default=1e-5)
+    parser.add_argument("--initial_sigma", type=float, default=0.2)
+    parser.add_argument("--final_sigma", type=float, default=0.02)
     parser.add_argument("--episodes", type=int, default=100)
+    parser.add_argument("--save_interval", type=int, default=1000)
     args = parser.parse_args()
 
 controller_config = load_controller_config(default_controller=args.controller)
@@ -48,44 +51,43 @@ env = suite.make(
     controller_configs=controller_config,
     has_renderer=False,
     has_offscreen_renderer=False,
+    use_object_obs=True,
     use_camera_obs=False,
     control_freq=50,
     render_camera=args.camera,
     render_gpu_device_id=0,
     horizon=args.horizon,
+    initialization_noise=None
 )
 for key,value in env.reset().items():
     print(f"Key: {key}, Value.shape: {value.shape}", flush=True)
 env = GymWrapper(env)
-env = TimeFeatureWrapper(env)
-print(f"\nTimeFeature GYM Wrapper obs: {env.reset().shape}\n", flush=True)
-
-batch_size = args.batch_size
-# 计算衰减率
-decay_rate = -np.log(args.final_lr / args.initial_lr)
-lr_schedule = lambda fraction: args.initial_lr * np.exp(-decay_rate * (1-fraction))
-
-total_timesteps = args.horizon * args.episodes
-if args.policy == "large":
-    policy_kwargs = {'net_arch' : [512, 512, 512, 512, 256, 256, 128, 128], 
-                    'n_critics' : 4,
-                    }
-elif args.policy == "middle":
-    policy_kwargs = {'net_arch' : [512, 512, 512, 512], 
-                    'n_critics' : 4,
-                    }
-elif args.policy == "small":
-    policy_kwargs = {'net_arch' : [512, 512], 
-                    'n_critics' : 2,
-                    }
-    
+print(f"\nGYM Wrapper obs: {env.reset().shape}\n", flush=True)
+# env = TimeFeatureWrapper(env)
+# print(f"\nTimeFeature GYM Wrapper obs: {env.reset().shape}\n", flush=True)
+env_test = suite.make(
+    args.environment,
+    args.robots,
+    controller_configs=controller_config,
+    has_renderer=False,
+    has_offscreen_renderer=False,
+    use_object_obs=True,
+    use_camera_obs=False,
+    control_freq=50,
+    render_camera=args.camera,
+    render_gpu_device_id=0,
+    horizon=args.horizon,
+    initialization_noise=None
+)
+env_test = GymWrapper(env_test)
+# CONTROLLER
 if args.controller == "OSC_POSE":
     n_actions = 14
 else:
     n_actions = env.robots[0].action_dim
 print(f"n_actions: {n_actions}\n", flush=True)
-action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.2)
 
+# POLICY NETWORK
 class ResidualBlock(nn.Module):
     def __init__(self, dim):
         super(ResidualBlock, self).__init__()
@@ -97,7 +99,6 @@ class ResidualBlock(nn.Module):
     
     def forward(self, x):
         return x + self.block(x)
-    
 class CustomNetwork(nn.Module):
     def __init__(
         self,
@@ -131,16 +132,13 @@ class CustomNetwork(nn.Module):
             ResidualBlock(last_layer_dim_pi),
             nn.ReLU(),
         )
-
     def forward(self, features: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         return self.forward_actor(features), self.forward_critic(features)
-
     def forward_actor(self, features: torch.Tensor) -> torch.Tensor:
         return self.policy_net(features)
 
     def forward_critic(self, features: torch.Tensor) -> torch.Tensor:
         return self.value_net(features)
-    
 class CustomActorCriticPolicy(ActorCriticPolicy):
     def __init__(
         self,
@@ -160,19 +158,43 @@ class CustomActorCriticPolicy(ActorCriticPolicy):
             *args,
             **kwargs,
         )
-    def _build_mlp_extractor(self) -> None:
+    def _build_mlp_extractor(self):
         self.mlp_extractor = CustomNetwork(self.features_dim)
+if args.policy == "large":
+    policy_kwargs = {'net_arch' : [512, 512, 512, 512, 256, 256, 128, 128], 
+                    'n_critics' : 4,
+                    }
+elif args.policy == "middle":
+    policy_kwargs = {'net_arch' : [512, 512, 512, 512], 
+                    'n_critics' : 4,
+                    }
+elif args.policy == "small":
+    policy_kwargs = {'net_arch' : [512, 512], 
+                    'n_critics' : 2,
+                    }
 
-goal_selection_strategy = "future"   
+# ACTION NOISE
+sigma_schedule = lambda fraction: args.initial_sigma + fraction * (args.final_sigma - args.initial_sigma)
+action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=args.initial_sigma)
+
+# LEARNING RATE
+save_interval = args.save_interval
+total_timesteps_per_iter = args.horizon * save_interval
+total_timesteps = 4 * args.horizon * args.episodes
+# decay_rate = -np.log(args.final_lr / args.initial_lr) / total_timesteps
+# lr_schedule = lambda step: args.initial_lr * np.exp(decay_rate * step)
+lr_schedule = lambda fraction: args.initial_lr + (1-fraction) * (args.final_lr - args.initial_lr)
+
+# ALGORITHM
 if args.model_name == "DDPG":
-    model = DDPG(policy="MlpPolicy", policy_kwargs=policy_kwargs, env=env, verbose=1, gamma=0.9, batch_size=batch_size, action_noise=action_noise, 
-                 replay_buffer_class=ReplayBuffer, learning_rate=lr_schedule, tensorboard_log=args.log_save)
+    model = DDPG(policy="MlpPolicy", policy_kwargs=policy_kwargs, env=env, verbose=1, gamma=0.9, batch_size=args.batch_size, action_noise=action_noise, 
+                 replay_buffer_class=ReplayBuffer, learning_rate=lr_schedule, tensorboard_log=args.log_save, device="cuda")
 elif args.model_name == "SAC":
-    model = SAC(policy="MlpPolicy", policy_kwargs=policy_kwargs, env=env, verbose=1, gamma = 0.9, batch_size=batch_size, action_noise=action_noise, 
-                replay_buffer_class=ReplayBuffer, learning_rate=lr_schedule, tensorboard_log=args.log_save)
+    model = SAC(policy="MlpPolicy", policy_kwargs=policy_kwargs, env=env, verbose=1, gamma = 0.9, batch_size=args.batch_size, action_noise=action_noise, 
+                replay_buffer_class=ReplayBuffer, learning_rate=lr_schedule, tensorboard_log=args.log_save, device="cuda")
 elif args.model_name == "PPO":
-    model = PPO(policy=CustomActorCriticPolicy, env=env, learning_rate=lr_schedule, verbose=1, gamma=0.9, batch_size=batch_size, tensorboard_log=args.log_save)
-
+    model = PPO(policy=CustomActorCriticPolicy, env=env, learning_rate=lr_schedule, verbose=1, gamma=0.9, batch_size=args.batch_size, 
+                tensorboard_log=args.log_save, device="cuda")
 if args.model_load is not None:
     if os.path.exists(args.model_load):
         try:
@@ -183,27 +205,43 @@ if args.model_load is not None:
     else:
         print(f"Model weights file {args.model_load} does not exist.")
 
-print("\nMODEL POLICY")
+print("\n🔱 MODEL POLICY")
 print(model.policy, flush=True)
-save_interval = 1000
+print("\n💰 Reward Function")
+print(inspect.getsource(env.unwrapped.reward), flush=True)
+best_reward = -np.inf
 for i in range(args.episodes // save_interval):
     print("✣✣✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✣✣✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢")
     print("✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤")
     start_time = time.time()
     print(f"👑 ROUND {i * save_interval} ", datetime.datetime.now(), flush=True)
-    # Evaluate model
-    results = evaluate_policy(model, env, n_eval_episodes=5, deterministic=False)
-    print(f"\nSTART evaluate_policy: {results}\n", flush=True)
+
     # Train model
-    total_timesteps_per_iter = args.horizon * save_interval
+    model.action_noise._sigma = sigma_schedule(i/(args.episodes // save_interval))
+    print(f"model.action_noise._sigma: {model.action_noise._sigma}", flush=True)
     model.learn(total_timesteps=total_timesteps_per_iter, reset_num_timesteps=False)
-    # Evaluate model
-    results = evaluate_policy(model, env, n_eval_episodes=5, deterministic=False)
-    print(f"\nEND evaluate_policy: {results}\n", flush=True)
+
     # Save model
-    save_path = args.model_save+f'_{(i + 1)*save_interval}.pth'
-    torch.save(model.policy.state_dict(), save_path)
-    print(f"Saved to {save_path}\n", flush=True)
+    rewards = 0
+    obs = env_test.reset()
+    for n in range(args.horizon):
+        action, _states = model.predict(obs, deterministic = True)
+        obs, reward, done, _ = env_test.step(action)
+        rewards += reward
+        if env_test._check_success():
+            print(f"🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉")
+            save_path = "succeed_"+args.model_save+f'_{i*save_interval}.pth'
+            torch.save(model.policy.state_dict(), save_path)
+            print(f"Succeed in {n} Steps, Saved to {save_path}\n", flush=True)
+            break
+    
+    if rewards > best_reward:
+        save_path = args.model_save+'.pth'
+        torch.save(model.policy.state_dict(), save_path)
+        print(f"🤩 New best rewards is {rewards}, better than last reward {best_reward}, Saved to {save_path}", flush=True)
+        best_reward = rewards
+    else: 
+        print(f"😰 Rewards this time is {rewards}, not better than last reward: {best_reward}", flush=True)
     
     end_time = time.time()
     elapsed_time = end_time - start_time
