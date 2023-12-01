@@ -1,6 +1,7 @@
 from math import pi, degrees
 import argparse
 import numpy as np
+from pyquaternion import Quaternion
 from tqdm import tqdm
 import json, time, math
 from copy import deepcopy
@@ -38,16 +39,13 @@ env = suite.make(
     camera_heights=args.height,
     camera_widths=args.width,
     horizon=args.horizon,
-    robot_initial_qpos = np.array([0.08975, 
-                                   0.13914,  0.00453,  0.05442, -0.11653,  0.01667, -0.00705,  0.10594,  
-                                   0.42625,  0.26695,  0.92676,  1.22509,  0.38182,  0.01312, -0.00972, ]),
     initialization_noise=None
 )
 # env = GymWrapper(env) 
 # env = TimeFeatureWrapper(env)
 
 
-delta = 0.1
+delta = 0.4
 arm_delta = 7
 def on_press(key):
     global action
@@ -166,10 +164,13 @@ for n in range(args.horizon):
 
     obs, reward, done, _ = env.step(action)
     reward_seq.append(reward)
-    print("🔱", "{:03}".format(n), "{:.5f}".format(reward), flush=True)
+    # print("🔱", "{:03}".format(n), "{:.5f}".format(reward), flush=True)
     # print(obs["pipette004_pos"], mat2euler(quat2mat(obs["pipette004_quat"])), obs["pipette004_quat"], flush=True)
-    # print(obs["robot0_left_eef_pos"], mat2euler(quat2mat(obs["robot0_left_eef_quat"])), obs["robot0_left_eef_quat"], flush=True)
-    print(np.linalg.norm(obs["g1_to_target_pos"]), obs["g1_to_target_quat"], obs["g1_to_target_pos"], flush=True)
+    print("🔱", "{:03}".format(n), obs["robot0_left_eef_pos"], obs["robot0_left_eef_quat"], obs["pipette004_quat"])
+    print(np.linalg.norm(obs["robot0_left_eef_pos"]-obs["pipette004_pos"]), (obs["robot0_left_eef_pos"]-obs["pipette004_pos"]),
+          Quaternion.absolute_distance(Quaternion(obs["robot0_left_eef_quat"]), Quaternion(obs["pipette004_quat"])), 
+          obs["robot0_left_eef_pos"]-obs["tube008_pos"], flush=True)
+    # print(np.linalg.norm(obs["g1_to_target_pos"]), obs["g1_to_target_quat"], obs["g1_to_target_pos"], flush=True)
     # print(obs["g0_to_target_pos"], np.linalg.norm(obs["g0_to_target_pos"]),obs["g0_to_target_quat"], flush=True)
 
     # pre_joint_positions = joint_positions
