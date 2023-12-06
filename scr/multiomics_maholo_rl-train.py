@@ -230,7 +230,7 @@ for i in range(args.episodes // save_interval):
         rewards += reward
         if env_test._check_success():
             print(f"🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉")
-            save_path = "succeed_"+args.model_save+f'_{i*save_interval}.pth'
+            save_path = args.model_save+f'_succeed_{i*save_interval}.pth'
             torch.save(model.policy.state_dict(), save_path)
             print(f"Succeed in {n} Steps, Saved to {save_path}\n", flush=True)
             break
