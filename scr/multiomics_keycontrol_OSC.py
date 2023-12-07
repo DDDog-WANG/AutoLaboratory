@@ -11,7 +11,7 @@ from robosuite.utils.transform_utils import quat2mat, mat2euler, quat_distance
 from pynput import keyboard
 from robosuite.wrappers.gym_wrapper import GymWrapper
 from sb3_contrib.common.wrappers import TimeFeatureWrapper
-np.set_printoptions(precision=5, suppress=True)
+# np.set_printoptions(precision=5, suppress=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -45,7 +45,7 @@ env = suite.make(
 # env = TimeFeatureWrapper(env)
 
 
-delta = 0.4
+delta = 0.2
 arm_delta = 7
 def on_press(key):
     global action
@@ -164,12 +164,12 @@ for n in range(args.horizon):
 
     obs, reward, done, _ = env.step(action)
     reward_seq.append(reward)
-    # print("🔱", "{:03}".format(n), "{:.5f}".format(reward), flush=True)
+    print("🔱", "{:03}".format(n), "{:.5f}".format(reward), flush=True)
     # print(obs["pipette004_pos"], mat2euler(quat2mat(obs["pipette004_quat"])), obs["pipette004_quat"], flush=True)
-    print("🔱", "{:03}".format(n), obs["robot0_left_eef_pos"], obs["robot0_left_eef_quat"], obs["pipette004_quat"])
-    print(np.linalg.norm(obs["robot0_left_eef_pos"]-obs["pipette004_pos"]), (obs["robot0_left_eef_pos"]-obs["pipette004_pos"]),
-          Quaternion.absolute_distance(Quaternion(obs["robot0_left_eef_quat"]), Quaternion(obs["pipette004_quat"])), 
-          obs["robot0_left_eef_pos"]-obs["tube008_pos"], flush=True)
+    # print("🔱", "{:03}".format(n), obs["robot0_left_eef_pos"], obs["robot0_left_eef_quat"], obs["pipette004_quat"])
+    # print(np.linalg.norm(obs["robot0_left_eef_pos"]-obs["pipette004_pos"]), (obs["robot0_left_eef_pos"]-obs["pipette004_pos"]),
+    #       Quaternion.absolute_distance(Quaternion(obs["robot0_left_eef_quat"]), Quaternion(obs["pipette004_quat"])), 
+    #       obs["robot0_left_eef_pos"]-obs["tube008_pos"], flush=True)
     # print(np.linalg.norm(obs["g1_to_target_pos"]), obs["g1_to_target_quat"], obs["g1_to_target_pos"], flush=True)
     # print(obs["g0_to_target_pos"], np.linalg.norm(obs["g0_to_target_pos"]),obs["g0_to_target_quat"], flush=True)
 
@@ -184,6 +184,18 @@ for n in range(args.horizon):
 
     env.render()
 
+def print_joint_positions(joint_positions):
+    print(f"👑 env.robots[0].sim.data.qpos.shape: {joint_positions.shape}")
+    print("body         :", joint_positions[0])
+    print("left_arm     :", joint_positions[1:8])
+    print("right_arm    :", joint_positions[10:17])
+    print("left_gripper :", joint_positions[8:10])
+    print("right_gripper:", joint_positions[17:19])
+    print("pipette004_pos :", joint_positions[19:22])
+    print("pipette004_quat:", joint_positions[22:26])
+    print("tube008_pos    :", joint_positions[26:29])
+    print("tube008_quat   :", joint_positions[29:33])
+print_joint_positions(env.robots[0].sim.data.qpos)
 env.close()
 
 # for key,value in obs.items():
