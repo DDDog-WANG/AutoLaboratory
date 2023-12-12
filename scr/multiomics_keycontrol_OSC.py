@@ -130,29 +130,30 @@ action_seq_joint = []
 obs_seq = []
 reward_seq = []
 
+def print_joint_positions(joint_positions):
+    print(f"👑 env.robots[0].sim.data.qpos.shape: {joint_positions.shape}")
+    print("✤✤ Robot ✤✤")
+    print("body         :", joint_positions[0])
+    print("left_arm     :", joint_positions[1:8])
+    print("right_arm    :", joint_positions[10:17])
+    print("left_gripper :", joint_positions[8:10])
+    print("right_gripper:", joint_positions[17:19])
+    print("✤✤ Object ✤✤")
+    print("pipette004_pos :", joint_positions[19:22])
+    print("pipette004_quat:", joint_positions[22:26])
+    print("tube008_pos    :", joint_positions[26:29])
+    print("tube008_quat   :", joint_positions[29:33])
+
 obs = env.reset()
-
-print(f"👑 ROUND {args.episode}")
-print("✤✤ Object ✤✤")
-pipette_pos = env.sim.data.get_body_xpos("P1000_withtip004_main")
-pipette_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("P1000_withtip004_main")))
-print(f"pipette  : {pipette_pos}, {pipette_euler}")
-tube_pos = env.sim.data.get_body_xpos("tube1_5ml008_main")
-tube_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("tube1_5ml008_main")))
-print(f"tube     : {tube_pos}, {tube_euler}")
-
-print("✤✤ Robot ✤✤")
-joint_positions = env.robots[0].sim.data.qpos
-joint_positions = np.concatenate((joint_positions[:9],joint_positions[10:18]))
-print("body     :",np.array([joint_positions[0]]))
-print("left_arm :",joint_positions[1:9])
-print("right_arm:",joint_positions[10:18])
-
+for key,value in obs.items():
+    print(f"Key: {key}, Value.shape: {value.shape}")
+    
+print_joint_positions(env.robots[0].sim.data.qpos)
 eef_pos = env.sim.data.get_body_xpos("gripper0_left_eef")
-eef_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("gripper0_left_eef")))
-print(f"left_eef : {eef_pos}, {eef_euler}")
+eef_euler = env.sim.data.get_body_xquat("gripper0_left_eef")
 eef_pos = env.sim.data.get_body_xpos("gripper0_right_eef")
-eef_euler = mat2euler(quat2mat(env.sim.data.get_body_xquat("gripper0_right_eef")))
+eef_euler = env.sim.data.get_body_xquat("gripper0_right_eef")
+print(f"left_eef : {eef_pos}, {eef_euler}")
 print(f"right_eef: {eef_pos}, {eef_euler}")
 print("✣✣✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢✢")
 print("✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✤✢✢✤✤")
@@ -184,18 +185,8 @@ for n in range(args.horizon):
 
     env.render()
 
-def print_joint_positions(joint_positions):
-    print(f"👑 env.robots[0].sim.data.qpos.shape: {joint_positions.shape}")
-    print("body         :", joint_positions[0])
-    print("left_arm     :", joint_positions[1:8])
-    print("right_arm    :", joint_positions[10:17])
-    print("left_gripper :", joint_positions[8:10])
-    print("right_gripper:", joint_positions[17:19])
-    print("pipette004_pos :", joint_positions[19:22])
-    print("pipette004_quat:", joint_positions[22:26])
-    print("tube008_pos    :", joint_positions[26:29])
-    print("tube008_quat   :", joint_positions[29:33])
 print_joint_positions(env.robots[0].sim.data.qpos)
+
 env.close()
 
 # for key,value in obs.items():

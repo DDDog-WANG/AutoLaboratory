@@ -3,6 +3,7 @@ import sys
 import numpy as np
 import robosuite as suite
 from robosuite import load_controller_config
+from robosuite.utils import OpenCVRenderer
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QGridLayout, QWidget, QHBoxLayout
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtCore import QTimer, pyqtSignal, QObject, Qt
@@ -41,7 +42,7 @@ class MainWindow(QMainWindow):
     def initUI(self):
         # 设置窗口标题和大小
         self.setWindowTitle('Robosuite Environment')
-        self.setGeometry(100, 100, 1200, 800)
+        self.setGeometry(100, 100, 2560, 1960)
         self.setStyleSheet("QMainWindow { background-color: #333; color: #DDD; }")
         self.setStyle(QStyleFactory.create('Fusion'))  # 设置应用风格为Fusion
 
@@ -128,22 +129,21 @@ class MainWindow(QMainWindow):
         # 调用更新函数，发送更新后的动作到环境
         self.updater.update()
 
-
     def updateImage(self, image):
-        # 在更新图像前，检查self.image_label是否存在
         if self.image_label is None:
             return  # 如果self.image_label被删除，直接返回不执行更新
-        
-        # 将numpy数组转换为bytes
-        image_bytes = image.tobytes()
 
-        h, w, ch = image.shape
-        bytes_per_line = ch * w
+        # 确保 image.data 是字节类型
+        image_data = image.data
+        if isinstance(image_data, memoryview):
+            image_data = image_data.tobytes()
 
-        # 使用bytes创建QImage
-        convert_to_Qt_format = QImage(image_bytes, w, h, bytes_per_line, QImage.Format_RGB888)
-        p = convert_to_Qt_format.scaled(800, 600, Qt.KeepAspectRatio)
-        self.image_label.setPixmap(QPixmap.fromImage(p))
+        # 创建 QImage 对象
+        qimage = QImage(image_data, image.shape[1], image.shape[0], QImage.Format_RGB888)
+
+        # 将 QImage 转换为 QPixmap 并设置到 QLabel 上
+        pixmap = QPixmap.fromImage(qimage)
+        self.image_label.setPixmap(pixmap.scaled(self.image_label.width(), self.image_label.height(), Qt.KeepAspectRatio))
 
 class ImageUpdater(QObject):
     update_signal = pyqtSignal(np.ndarray)
@@ -152,12 +152,18 @@ class ImageUpdater(QObject):
         super().__init__()
         self.env = env
         self.actions = actions
-
+        self.renderer = OpenCVRenderer(env.sim)
+        
     def update(self):
+        # 执行动作并获取观测值
         obs, reward, done, _ = self.env.step(self.actions)
-        image = obs[args.camera+"_image"] # 获取相应相机的图像
+        
+        # 使用 OpenCV 渲染图像
+        image = self.env.sim.render(camera_name=self.renderer.camera_name, height=1200, width=1920)[..., ::-1]  # 适当调整尺寸
         image = np.flip(image, axis=0)
-        self.update_signal.emit(image)  # 发射信号
+        
+        # 发射信号
+        self.update_signal.emit(image)
 
 if __name__ == "__main__":
     controller_config = load_controller_config(default_controller=args.controller)
