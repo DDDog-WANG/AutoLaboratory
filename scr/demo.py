@@ -1,14 +1,9 @@
-from math import pi, degrees
 import numpy as np
-import time
-import json
 from tqdm import tqdm
 import argparse
 import robosuite as suite
 from robosuite import load_controller_config
-from robosuite.utils.transform_utils import quat2mat, mat2euler
-from robosuite.wrappers.gym_wrapper import GymWrapper
-from sb3_contrib.common.wrappers import TimeFeatureWrapper
+import mujoco, mujoco_viewer, mujoco.viewer
 np.set_printoptions(precision=4, suppress=True)
 
 if __name__ == "__main__":
@@ -42,9 +37,7 @@ env = suite.make(
     initialization_noise=None,
 )
 
-for key in env.robots[0].gripper:
-    print(f"{key} hand: {env.robots[0].gripper[key]}")
-
+env.reset()
 
 def print_joint_positions(joint_positions):
     print(f"👑 env.robots[0].sim.data.qpos.shape: {joint_positions.shape}")
@@ -59,15 +52,34 @@ def print_joint_positions(joint_positions):
     print("pipette004_quat:", joint_positions[22:26])
     print("tube008_pos    :", joint_positions[26:29])
     print("tube008_quat   :", joint_positions[29:33])
-
-env.reset()
 print_joint_positions(env.robots[0].sim.data.qpos)
+
 for n in range(100):
 
     action = np.random.uniform(-1, 1, 17)
+    action = np.zeros(17)
 
     obs, reward, done, _ = env.step(action)
 
     env.render()
+    # viewer.render()
 
 env.close()
+
+# # 获取 MuJoCo 模型和数据
+# model = env.sim.model
+# data = env.sim.data
+
+# # 使用 mujoco_py 创建视图器
+# viewer = mujoco_viewer.MujocoViewer(model, data)
+
+# # 仿真循环
+# for _ in range(100):
+#     action = np.random.uniform(-1, 1, 17)
+
+#     obs, reward, done, _ = env.step(action)
+    
+#     viewer.render()  # 更新和渲染视图器
+
+# # 关闭环境
+# env.close()

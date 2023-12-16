@@ -1,18 +1,11 @@
-# import mujoco_py
-import mujoco
-import mujoco_viewer
-
 import numpy as np
 from robosuite.models import MujocoWorldBase
-from robosuite.models import robots
+from robosuite.models import robots, arenas, objects
 from robosuite.models.grippers import gripper_factory
-from robosuite.models import arenas
-from robosuite.models import objects
-from robosuite.utils.mjcf_utils import new_joint
-
-
+import mujoco, mujoco.viewer, mujoco_viewer
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
+
 # Step 1: Creating the world.
 world = MujocoWorldBase()
 
@@ -35,26 +28,13 @@ mujoco_robot.set_base_xpos([-0.620, 0.338, 0.2243])
 world.merge(mujoco_robot)
 
 # Step 5: Creating the object.
+object01 = objects.P1000Pipette_withtipObject(name="P1000Pipette_withtip")
+world.merge(object01)
+# object01.set_base_xpos([1, 1, 1])
 # object00 = objects.tube1_5mlObject(name="tube1_5ml")
 # world.merge(object00)
-
-# object01 = objects.P1000Pipette_withtipObject(name="P1000Pipette_withtip")
-object01 = objects.P1000Pipette_withtipObject(name="P1000Pipette_withtip")
-# object01.set_base_xpos([1, 1, 1])
-world.merge(object01)
-# object01.set("pos", "0.5 0.5 0.5")
-# world.worldbody.append(object01)
 
 # Step 6: Running Simulation.
 model = world.get_model(mode="mujoco")
 data = mujoco.MjData(model)
-
-# create the viewer object
-viewer = mujoco_viewer.MujocoViewer(model, data)
-# viewer = mujoco_py.MjViewer(model, data)
-
-for _ in range(1000):
-    mujoco.mj_step(model, data)
-    viewer.render()
-    
-viewer.close()
+viewer = mujoco.viewer.launch(model, data)

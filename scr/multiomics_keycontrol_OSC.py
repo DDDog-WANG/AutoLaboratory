@@ -44,7 +44,7 @@ env = suite.make(
 # env = GymWrapper(env) 
 # env = TimeFeatureWrapper(env)
 
-
+# sidecamera: dawsqe ikjlou10
 delta = 0.2
 arm_delta = 7
 def on_press(key):
@@ -131,18 +131,14 @@ obs_seq = []
 reward_seq = []
 
 def print_joint_positions(joint_positions):
-    print(f"👑 env.robots[0].sim.data.qpos.shape: {joint_positions.shape}")
-    print("✤✤ Robot ✤✤")
-    print("body         :", joint_positions[0])
-    print("left_arm     :", joint_positions[1:8])
-    print("right_arm    :", joint_positions[10:17])
-    print("left_gripper :", joint_positions[8:10])
-    print("right_gripper:", joint_positions[17:19])
-    print("✤✤ Object ✤✤")
-    print("pipette004_pos :", joint_positions[19:22])
-    print("pipette004_quat:", joint_positions[22:26])
-    print("tube008_pos    :", joint_positions[26:29])
-    print("tube008_quat   :", joint_positions[29:33])
+    print("  robot_initial_qpos=np.array([", ', '.join(f"{x:.8f}" for x in joint_positions[0:8]), ", ", ', '.join(f"{x:.8f}" for x in joint_positions[10:17]), "]),")
+    print("  gripper_l_initial_qpos = np.array([", ', '.join(f"{x:.8f}" for x in joint_positions[8:10]), "]),")
+    print("  gripper_r_initial_qpos = np.array([", ', '.join(f"{x:.8f}" for x in joint_positions[17:19]), "]),")
+    print("  tube008_initial_pos = np.array([", ', '.join(f"{x:.8f}" for x in joint_positions[19:22]), "]),")
+    print("  tube008_initial_quat = np.array([", ', '.join(f"{x:.8f}" for x in joint_positions[22:26]), "]),")
+    print("  pipette004_initial_pos = np.array([", ', '.join(f"{x:.8f}" for x in joint_positions[26:29]), "]),")
+    print("  pipette004_initial_quat = np.array([", ', '.join(f"{x:.8f}" for x in joint_positions[29:33]), "]),")
+
 
 obs = env.reset()
 for key,value in obs.items():
@@ -168,9 +164,7 @@ for n in range(args.horizon):
     print("🔱", "{:03}".format(n), "{:.5f}".format(reward), flush=True)
     # print(obs["pipette004_pos"], mat2euler(quat2mat(obs["pipette004_quat"])), obs["pipette004_quat"], flush=True)
     # print("🔱", "{:03}".format(n), obs["robot0_left_eef_pos"], obs["robot0_left_eef_quat"], obs["pipette004_quat"])
-    # print(np.linalg.norm(obs["robot0_left_eef_pos"]-obs["pipette004_pos"]), (obs["robot0_left_eef_pos"]-obs["pipette004_pos"]),
-    #       Quaternion.absolute_distance(Quaternion(obs["robot0_left_eef_quat"]), Quaternion(obs["pipette004_quat"])), 
-    #       obs["robot0_left_eef_pos"]-obs["tube008_pos"], flush=True)
+    print(env._gripper1_to_target_pos, env._gripper1_to_target_quat, env._pipette004_pos_bottom - (env._tube008_pos+env.object_offset))
     # print(np.linalg.norm(obs["g1_to_target_pos"]), obs["g1_to_target_quat"], obs["g1_to_target_pos"], flush=True)
     # print(obs["g0_to_target_pos"], np.linalg.norm(obs["g0_to_target_pos"]),obs["g0_to_target_quat"], flush=True)
 

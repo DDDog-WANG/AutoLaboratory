@@ -183,12 +183,11 @@ class MainWindow(QMainWindow):
         self.updater.update()
         self.updateEnvInfo()
         self.action_index += 1
-        
 
     def setupActionTimer(self):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.updateAction)
-        self.timer.start(1)
+        self.timer.start(10)
 
 
 
@@ -201,7 +200,7 @@ if __name__ == "__main__":
         controller_configs=controller_config,
         has_renderer=False,
         has_offscreen_renderer=True,
-        control_freq=30,
+        control_freq=50,
         horizon=args.horizon,
     )
 
