@@ -20,7 +20,8 @@ import datetime, time
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--workdir", type=str, default="./")
-    parser.add_argument("--model_save", type=str, default="my_model")
+    parser.add_argument("--model_name", type=str, default="my_model")
+    parser.add_argument("--model_save", type=str, default="./")
     parser.add_argument("--model_load", type=str, default=None)
     parser.add_argument("--log_save", type=str, default="./")
 
@@ -33,7 +34,7 @@ if __name__ == "__main__":
     parser.add_argument("--height", type=int, default=1536)
     parser.add_argument("--width", type=int, default=2560)
 
-    parser.add_argument("--model_name", type=str, default="SAC")
+    parser.add_argument("--model", type=str, default="SAC")
     parser.add_argument("--policy", type=str, default="small")
     parser.add_argument("--batch_size", type=int, default=4096)
     parser.add_argument("--initial_lr", type=float, default=1e-3)
@@ -42,6 +43,7 @@ if __name__ == "__main__":
     parser.add_argument("--final_sigma", type=float, default=0.02)
     parser.add_argument("--episodes", type=int, default=100)
     parser.add_argument("--save_interval", type=int, default=1000)
+    parser.add_argument("--reward_version", type=str, default="0")
     args = parser.parse_args()
 
 controller_config = load_controller_config(default_controller=args.controller)
@@ -57,12 +59,15 @@ env = suite.make(
     render_camera=args.camera,
     render_gpu_device_id=0,
     horizon=args.horizon,
-    initialization_noise=None
+    initialization_noise=None,
+    reward_version=args.reward_version,
 )
 for key,value in env.reset().items():
     print(f"Key: {key}, Value.shape: {value.shape}", flush=True)
 env = GymWrapper(env)
 print(f"\nGYM Wrapper obs: {env.reset().shape}\n", flush=True)
+print(args.model_save+f'{args.model_name}.pth')
+print(args.model_save+f'succeed/{args.model_name}_succeed_i*save_interval.pth')
 # env = TimeFeatureWrapper(env)
 # print(f"\nTimeFeature GYM Wrapper obs: {env.reset().shape}\n", flush=True)
 env_test = suite.make(
@@ -186,13 +191,13 @@ total_timesteps = 4 * args.horizon * args.episodes
 lr_schedule = lambda fraction: args.initial_lr + (1-fraction) * (args.final_lr - args.initial_lr)
 
 # ALGORITHM
-if args.model_name == "DDPG":
+if args.model == "DDPG":
     model = DDPG(policy="MlpPolicy", policy_kwargs=policy_kwargs, env=env, verbose=1, gamma=0.9, batch_size=args.batch_size, action_noise=action_noise, 
                  replay_buffer_class=ReplayBuffer, learning_rate=lr_schedule, tensorboard_log=args.log_save, device="cuda")
-elif args.model_name == "SAC":
+elif args.model == "SAC":
     model = SAC(policy="MlpPolicy", policy_kwargs=policy_kwargs, env=env, verbose=1, gamma = 0.9, batch_size=args.batch_size, action_noise=action_noise, 
                 replay_buffer_class=ReplayBuffer, learning_rate=lr_schedule, tensorboard_log=args.log_save, device="cuda")
-elif args.model_name == "PPO":
+elif args.model == "PPO":
     model = PPO(policy=CustomActorCriticPolicy, env=env, learning_rate=lr_schedule, verbose=1, gamma=0.9, batch_size=args.batch_size, 
                 tensorboard_log=args.log_save, device="cuda")
 if args.model_load is not None:
@@ -230,13 +235,13 @@ for i in range(args.episodes // save_interval):
         rewards += reward
         if env_test._check_success():
             print(f"🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉")
-            save_path = args.model_save+f'_succeed_{i*save_interval}.pth'
+            save_path = args.model_save+f'succeed/{args.model_name}_succeed_{i*save_interval}.pth'
             torch.save(model.policy.state_dict(), save_path)
             print(f"Succeed in {n} Steps, Saved to {save_path}\n", flush=True)
             break
     
     if rewards > best_reward:
-        save_path = args.model_save+'.pth'
+        save_path = args.model_save+f'{args.model_name}.pth'
         torch.save(model.policy.state_dict(), save_path)
         print(f"🤩 New best rewards is {rewards}, better than last reward {best_reward}, Saved to {save_path}", flush=True)
         best_reward = rewards

@@ -22,8 +22,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--workdir", type=str)
     parser.add_argument("--model_load", type=str)
-    parser.add_argument("--model_name", type=str, default="SAC")
+    parser.add_argument("--model", type=str, default="SAC")
     parser.add_argument("--policy", type=str, default="small")
+    parser.add_argument("--reward_version", type=str, default="0")
 
     parser.add_argument("--environment", type=str, default="MaholoLaboratory")
     parser.add_argument("--robots", type=str, default="Maholo")
@@ -52,7 +53,8 @@ env_recoder = suite.make(
     camera_widths=args.width,
     render_gpu_device_id=0,
     horizon=args.horizon,
-    initialization_noise=None
+    initialization_noise=None,
+    reward_version=args.reward_version,
 )
 env = suite.make(
     args.environment,
@@ -66,87 +68,14 @@ env = suite.make(
     render_camera=args.camera,
     render_gpu_device_id=0,
     horizon=args.horizon,
-    initialization_noise=None
+    initialization_noise=None,
+    reward_version=args.reward_version,
 )
 env = GymWrapper(env)
 # env = TimeFeatureWrapper(env)
 writer = imageio.get_writer(args.workdir+"/videos_tmp/"+args.video_name+".mp4", fps=args.fps)
 
 # POLICY NETWORK
-class ResidualBlock(nn.Module):
-    def __init__(self, dim):
-        super(ResidualBlock, self).__init__()
-        self.block = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.ReLU(),
-            nn.Linear(dim, dim)
-        )
-    
-    def forward(self, x):
-        return x + self.block(x) 
-class CustomNetwork(nn.Module):
-    def __init__(
-        self,
-        feature_dim: int,
-        last_layer_dim_pi: int = 512,
-        last_layer_dim_vf: int = 512,
-        
-    ):
-        super().__init__()
-
-        # IMPORTANT:
-        # Save output dimensions, used to create the distributions
-        self.latent_dim_pi = last_layer_dim_pi
-        self.latent_dim_vf = last_layer_dim_vf
-
-        # Policy network
-        self.policy_net = nn.Sequential(
-            nn.Linear(feature_dim, last_layer_dim_pi),
-            nn.ReLU(),
-            ResidualBlock(last_layer_dim_pi),
-            nn.ReLU(),
-            ResidualBlock(last_layer_dim_pi),
-            nn.ReLU(),
-        )
-        # Value network
-        self.value_net = nn.Sequential(
-            nn.Linear(feature_dim, last_layer_dim_vf),
-            nn.ReLU(),
-            ResidualBlock(last_layer_dim_vf),
-            nn.ReLU(),
-            ResidualBlock(last_layer_dim_pi),
-            nn.ReLU(),
-        )
-
-    def forward(self, features: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        return self.forward_actor(features), self.forward_critic(features)
-
-    def forward_actor(self, features: torch.Tensor) -> torch.Tensor:
-        return self.policy_net(features)
-
-    def forward_critic(self, features: torch.Tensor) -> torch.Tensor:
-        return self.value_net(features)   
-class CustomActorCriticPolicy(ActorCriticPolicy):
-    def __init__(
-        self,
-        observation_space: spaces.Space,
-        action_space: spaces.Space,
-        lr_schedule: Callable[[float], float],
-        *args,
-        **kwargs,
-    ):
-        # Disable orthogonal initialization
-        kwargs["ortho_init"] = False
-        super().__init__(
-            observation_space,
-            action_space,
-            lr_schedule,
-            # Pass remaining arguments to base class
-            *args,
-            **kwargs,
-        )
-    def _build_mlp_extractor(self):
-        self.mlp_extractor = CustomNetwork(self.features_dim)
 if args.policy == "large":
     policy_kwargs = {'net_arch' : [512, 512, 512, 512, 256, 256, 128, 128], 
                     'n_critics' : 4,
@@ -161,12 +90,10 @@ elif args.policy == "small":
                     }
 
 # ALGORITHM
-if args.model_name == "DDPG":
+if args.model == "DDPG":
     model = DDPG(policy="MlpPolicy", env=env, policy_kwargs=policy_kwargs)
-elif args.model_name == "SAC":
+elif args.model == "SAC":
     model = SAC(policy="MlpPolicy", env=env, policy_kwargs=policy_kwargs)
-elif args.model_name == "PPO":
-    model = PPO(policy=CustomActorCriticPolicy, env=env)
 model.policy.load_state_dict(torch.load(args.model_load))
 
 obs = env.reset()
@@ -191,7 +118,7 @@ for n in range(args.horizon):
     rewards += reward
 
     obs_recoder, reward_recorder, _, _ = env_recoder.step(action)
-    print("🔱", "{:03}".format(n), "{:.5f}".format(reward), np.linalg.norm(obs_recoder["g1_to_target_pos"]), obs_recoder["g1_to_target_quat"], flush=True)
+    print("🔱", "{:03}".format(n), "{:.5f}".format(reward), np.linalg.norm(obs_recoder["g1_to_target_pos"]), obs_recoder["g1_to_target_quat"], np.linalg.norm(obs_recoder["g0_to_target_pos"]), obs_recoder["g0_to_target_quat"], flush=True)
     # env.unwrapped.render()
     frame = obs_recoder[args.camera+"_image"]
     frame = np.flip(frame, axis=0)
