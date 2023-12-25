@@ -80,7 +80,7 @@ def on_press(key):
         elif key.char == "0":
             action[6+arm_delta] = -delta
 
-        if key.char == "W":
+        elif key.char == "W":
             action[0] = -delta
         elif key.char == "S":
             action[0] = delta

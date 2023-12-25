@@ -14,7 +14,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--environment", type=str, default="MaholoLaboratory_eefR_Move2Pipette")
     parser.add_argument("--robots", type=str, default="Maholo")
-    parser.add_argument("--controller", type=str, default="JOINT_POSITION")
+    parser.add_argument("--controller", type=str, default="OSC_POSE")
     parser.add_argument("--camera", type=str, default="frontview")
     parser.add_argument("--horizon", type=int, default=10000)
     args = parser.parse_args()
@@ -31,7 +31,7 @@ class Updater(QObject):
         self.env = env
         
     def update(self):
-        # 执行动作并获取观测值
+
         obs, reward, done, _ = self.env.step(self.action)
         
         # 使用 Robosuite 渲染并发射四个摄像头的图像
@@ -68,7 +68,8 @@ class MainWindow(QMainWindow):
     def initUI(self):
         self.setWindowTitle('Robosuite Environment')
         self.setGeometry(400, 0, 1056, 800)
-
+        self.setFocusPolicy(Qt.StrongFocus)
+        self.setFocus()
         # 主布局
         main_layout = QVBoxLayout()
 
@@ -178,7 +179,7 @@ class MainWindow(QMainWindow):
 
     def updateAction(self):
         # self.action = np.random.uniform(-1, 1, size=self.env.action_dim)
-        self.action = np.array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]) 
+        self.action = np.zeros(14)
         self.updater.action = self.action
         self.updater.update()
         self.updateEnvInfo()
@@ -187,7 +188,88 @@ class MainWindow(QMainWindow):
     def setupActionTimer(self):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.updateAction)
-        self.timer.start(10)
+        self.timer.start(20)
+
+    def keyPressEvent(self, event):
+        delta = 1
+        arm_delta = 7
+        char = event.text()  # 获取按键对应的字符
+        print(f"KeyPressEvent Triggered Pressed: {char}")
+
+        # 使用 char 变量来判断按下的键
+        if char == "w":
+            self.action[0+arm_delta] = -delta
+        elif char == "s":
+            self.action[0+arm_delta] = delta
+        elif char == "s":
+            self.action[0+arm_delta] = delta
+        elif char == "a":
+            self.action[1+arm_delta] = -delta
+        elif char == "d":
+            self.action[1+arm_delta] = delta
+        elif char == "q":
+            self.action[2+arm_delta] = delta
+        elif char == "e":
+            self.action[2+arm_delta] = -delta
+
+        elif char == "j":
+            self.action[3+arm_delta] = delta/2
+        elif char == "l":
+            self.action[3+arm_delta] = -delta/2
+        elif char == "k":
+            self.action[4+arm_delta] = delta/2
+        elif char == "i":
+            self.action[4+arm_delta] = -delta/2
+        elif char == "o":
+            self.action[5+arm_delta] = delta/2
+        elif char == "u":
+            self.action[5+arm_delta] = -delta/2
+        elif char == "1":
+            self.action[6+arm_delta] = delta
+        elif char == "0":
+            self.action[6+arm_delta] = -delta
+
+        elif char == "W":
+            self.action[0] = -delta
+        elif char == "S":
+            self.action[0] = delta
+        elif char == "A":
+            self.action[1] = -delta
+        elif char == "D":
+            self.action[1] = delta
+        elif char == "Q":
+            self.action[2] = delta
+        elif char == "E":
+            self.action[2] = -delta
+
+        elif char == "J":
+            self.action[3] = delta/2
+        elif char == "L":
+            self.action[3] = -delta/2
+        elif char == "K":
+            self.action[4] = delta/2
+        elif char == "I":
+            self.action[4] = -delta/2
+        elif char == "O":
+            self.action[5] = delta/2
+        elif char == "U":
+            self.action[5] = -delta/2
+        elif char == "!":
+            self.action[6] = delta
+        elif char == "~":
+            self.action[6] = -delta
+
+        # 立即应用动作
+        self.updater.action = self.action
+        self.updater.update()
+
+    def keyReleaseEvent(self, event):
+        # 释放按键时重置动作
+        self.action[:] = 0
+
+        # 立即停止动作
+        self.updater.action = self.action
+        self.updater.update()
 
 
 

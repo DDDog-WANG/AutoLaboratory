@@ -37,7 +37,7 @@ env = suite.make(
     initialization_noise=None,
 )
 
-env.reset()
+obs = env.reset()
 
 def print_joint_positions(joint_positions):
     print(f"👑 env.robots[0].sim.data.qpos.shape: {joint_positions.shape}")

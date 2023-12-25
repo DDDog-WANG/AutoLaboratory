@@ -7,7 +7,7 @@ import argparse
 import robosuite as suite
 from robosuite import load_controller_config
 from robosuite.utils.transform_utils import quat2mat, mat2euler
-
+from multiomics_maholo_move import maholo_move
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--environment", type=str, default="MaholoLaboratory_eefR_Move2Tube")
@@ -15,12 +15,12 @@ if __name__ == "__main__":
     parser.add_argument("--controller", type=str, default="JOINT_VELOCITY")
     parser.add_argument("--camera", type=str, default="frontview")
     parser.add_argument("--video_name", type=str, default="video")
-    parser.add_argument("--t", type=int, default=50)
+    parser.add_argument("--t", type=int, default=100)
     parser.add_argument("--height", type=int, default=1536)
     parser.add_argument("--width", type=int, default=2560)
     args = parser.parse_args()
 
-writer = imageio.get_writer("../../videos_tmp/"+args.environment+".mp4", fps=50)
+writer = imageio.get_writer("./videos/"+args.environment+".mp4", fps=50)
 
 controller_config = load_controller_config(default_controller=args.controller)
 env = suite.make(
@@ -50,7 +50,7 @@ action = np.zeros(env.robots[0].dof)
 #     print(i)
 for n in range(args.t):
     # action = action_seq[n]
-
+    action = maholo_move(obs)
     obs, reward, done, _ = env.step(action)
 
     frame = obs[args.camera+"_image"]
