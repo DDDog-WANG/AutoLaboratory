@@ -73,7 +73,7 @@ env = suite.make(
 )
 env = GymWrapper(env)
 # env = TimeFeatureWrapper(env)
-writer = imageio.get_writer(args.workdir+"/videos_tmp/"+args.video_name+".mp4", fps=args.fps)
+writer = imageio.get_writer(f"{args.workdir}/videos_tmp/{args.video_name}.mp4", fps=args.fps)
 
 # POLICY NETWORK
 if args.policy == "large":
@@ -96,6 +96,8 @@ elif args.model == "SAC":
     model = SAC(policy="MlpPolicy", env=env, policy_kwargs=policy_kwargs)
 model.policy.load_state_dict(torch.load(args.model_load))
 
+trajectory_joint_qpos = []
+trajectory_actions = []
 obs = env.reset()
 def print_joint_positions(joint_positions):
     print(f"👑 env.robots[0].sim.data.qpos.shape: {joint_positions.shape}")
@@ -119,11 +121,16 @@ for n in range(args.horizon):
 
     obs_recoder, reward_recorder, _, _ = env_recoder.step(action)
     print("🔱", "{:03}".format(n), "{:.5f}".format(reward), np.linalg.norm(obs_recoder["g1_to_target_pos"]), obs_recoder["g1_to_target_quat"], np.linalg.norm(obs_recoder["g0_to_target_pos"]), obs_recoder["g0_to_target_quat"], flush=True)
-    # env.unwrapped.render()
+
     frame = obs_recoder[args.camera+"_image"]
     frame = np.flip(frame, axis=0)
     writer.append_data(frame)
+
+    trajectory_joint_qpos.append(env.robots[0].sim.data.qpos[:19].tolist())
+    trajectory_actions.append(action)
+
     if env_recoder._check_success(): break
+
 print_joint_positions(env.robots[0].sim.data.qpos)
 print("📷 obs: ")
 print(obs)
@@ -134,4 +141,13 @@ writer.close()
 print(f"🔱 FINISH")
 print(args.video_name)
 print(f"rewards: {rewards}, steps: {n+1}, avg_rewards: {rewards/(n+1)}\n")
+
+trajectory_joint_qpos = np.array(trajectory_joint_qpos)
+print("trajectory_joint_qpos.shape: ", trajectory_joint_qpos.shape)
+trajectory_actions = np.array(trajectory_actions)
+print("trajectory_actions.shape: ", trajectory_actions.shape)
+np.save(f"{args.workdir}/data/trajectory_joint_qpos-{args.video_name}.npy", trajectory_joint_qpos)
+np.savetxt(f"{args.workdir}/data/trajectory_joint_qpos-{args.video_name}.txt", trajectory_joint_qpos)
+np.save(f"{args.workdir}/data/trajectory_actions-{args.video_name}.npy", trajectory_actions)
+np.savetxt(f"{args.workdir}/data/trajectory_actions-{args.video_name}.txt", trajectory_actions)
 
