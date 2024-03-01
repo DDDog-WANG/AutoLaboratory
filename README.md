@@ -43,11 +43,15 @@
 
   <img src="./figures/model.png" alt="model"/>
 
-  * Samples of results.
+  * Sample of robot movement.
 
   <img src="./figures/pickput.png" alt="pickput"/>
 
-  * Correspondence between real and virtual space.
+  * Video of robot movement.
 
+    <img src="./videos/agent001_maholo_eefR_Move2Pipette.mp4" alt="pickput"/>
+  
+  * Correspondence between real and virtual space.
+  
   <img src="./figures/correspondence_titrant.png" alt="correspondence_titrant" />
 

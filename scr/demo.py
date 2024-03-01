@@ -1,5 +1,4 @@
 import numpy as np
-from tqdm import tqdm
 import argparse
 import robosuite as suite
 from robosuite import load_controller_config
@@ -8,14 +7,15 @@ np.set_printoptions(precision=4, suppress=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--environment", type=str, default="MaholoLaboratory_eefR_Move2Pipette")
+    parser.add_argument("--environment", type=str, default="MaholoLaboratory")
     parser.add_argument("--robots", type=str, default="Maholo")
     parser.add_argument("--controller", type=str, default="JOINT_POSITION")
+    parser.add_argument("--control_mode", type=str, default="8+7")
     parser.add_argument("--camera", type=str, default="frontview")
     parser.add_argument("--horizon", type=int, default=5000)
     parser.add_argument("--episode", type=int, default=1)
     parser.add_argument("--height", type=int, default=1536)
-    parser.add_argument("--width", type=int, default=2560)
+    parser.add_argument("--width", type=int, default=2560) 
     args = parser.parse_args()
 
 
@@ -24,6 +24,8 @@ env = suite.make(
     args.environment,
     args.robots,
     controller_configs=controller_config,
+    control_freq=50,
+    control_mode=args.control_mode,
     has_renderer=True,
     has_offscreen_renderer=True,
     render_camera=args.camera,
@@ -32,7 +34,6 @@ env = suite.make(
     camera_names=args.camera,
     camera_heights=args.height,
     camera_widths=args.width,
-    control_freq=50,
     horizon=args.horizon,
     initialization_noise=None,
 )
@@ -54,15 +55,15 @@ def print_joint_positions(joint_positions):
     print("tube008_quat   :", joint_positions[29:33])
 print_joint_positions(env.robots[0].sim.data.qpos)
 
-for n in range(100):
+
+action = np.zeros(17)
+for n in range(50):
 
     action = np.random.uniform(-1, 1, 17)
-    action = np.zeros(17)
 
     obs, reward, done, _ = env.step(action)
 
     env.render()
-    # viewer.render()
 
 env.close()
 
